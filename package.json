@@ -1,0 +1,13 @@
+{
+  "name": "companion-dispatch",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:admin": "npm run dev --workspace=apps/admin",
+    "dev:mobile": "npm run web --workspace=apps/mobile",
+    "test:pricing": "npm run test --workspace=packages/pricing"
+  }
+}

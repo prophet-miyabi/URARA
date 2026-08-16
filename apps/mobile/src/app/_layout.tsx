@@ -1,0 +1,37 @@
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
+import { useFonts, PlayfairDisplay_600SemiBold, PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
+import { ReservationProvider } from '@/lib/reservation-store';
+import { palette } from '@/components/ui';
+
+SplashScreen.preventAutoHideAsync();
+
+export default function RootLayout() {
+  const [fontsLoaded] = useFonts({ PlayfairDisplay_600SemiBold, PlayfairDisplay_700Bold });
+
+  useEffect(() => {
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
+
+  return (
+    <ReservationProvider>
+      <StatusBar style="light" />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: palette.bg },
+          headerTintColor: palette.gold,
+          headerTitleStyle: { color: palette.text },
+          contentStyle: { backgroundColor: palette.bg },
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="booking/index" options={{ title: '予約する', headerBackTitle: '戻る' }} />
+        <Stack.Screen name="reservation/[id]" options={{ title: '予約状況', headerBackTitle: '戻る' }} />
+      </Stack>
+    </ReservationProvider>
+  );
+}
