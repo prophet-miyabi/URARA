@@ -7,23 +7,9 @@ import type { BookingType, PaymentMethod } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
 import { Card, PressableCard, GoldButton, SecondaryButton, palette } from '@/components/ui';
 import { GlamourStrip, TrustBadges } from '@/components/glamour';
+import { CalendarPicker, TimeSlotPicker } from '@/components/calendar';
 
 const STEP_LABELS = ['店舗選択', '予約内容', 'お支払い・確認'];
-
-function presetTimeSlots(): { label: string; iso: string }[] {
-  const now = new Date();
-  const slots: { label: string; iso: string }[] = [];
-  for (const daysAhead of [0, 1, 2]) {
-    for (const hour of [18, 20, 22]) {
-      const d = new Date(now);
-      d.setDate(d.getDate() + daysAhead);
-      d.setHours(hour, 0, 0, 0);
-      if (d.getTime() <= now.getTime()) continue;
-      slots.push({ label: formatDateTimeJST(d.toISOString()), iso: d.toISOString() });
-    }
-  }
-  return slots.slice(0, 6);
-}
 
 export default function BookingScreen() {
   const router = useRouter();
@@ -32,14 +18,21 @@ export default function BookingScreen() {
 
   const [venueId, setVenueId] = useState<string | null>(null);
   const [bookingType, setBookingType] = useState<BookingType>('scheduled');
-  const [scheduledIso, setScheduledIso] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const [guestCount, setGuestCount] = useState(4);
   const [companionCount, setCompanionCount] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [notes, setNotes] = useState('');
 
-  const slots = useMemo(presetTimeSlots, []);
   const price = calculatePrice({ companionCount, durationHours: 2 });
+
+  const scheduledIso = useMemo(() => {
+    if (!selectedDate || selectedHour === null) return null;
+    const d = new Date(selectedDate);
+    d.setHours(selectedHour, 0, 0, 0);
+    return d.toISOString();
+  }, [selectedDate, selectedHour]);
 
   const requestedDatetime = bookingType === 'now' ? new Date().toISOString() : scheduledIso;
 
@@ -109,16 +102,21 @@ export default function BookingScreen() {
           </View>
 
           {bookingType === 'scheduled' && (
-            <View style={styles.slotGrid}>
-              {slots.map((s) => (
-                <PressableCard
-                  key={s.iso}
-                  style={[styles.slotCard, scheduledIso === s.iso && styles.venueCardSelected]}
-                  onPress={() => setScheduledIso(s.iso)}
-                >
-                  <Text style={styles.slotLabel}>{s.label}</Text>
-                </PressableCard>
-              ))}
+            <View style={styles.dateTimeSection}>
+              <CalendarPicker
+                selectedDate={selectedDate}
+                onSelectDate={(d) => {
+                  setSelectedDate(d);
+                  setSelectedHour(null);
+                }}
+              />
+              {selectedDate && (
+                <>
+                  <Text style={styles.fieldLabel}>開始時間</Text>
+                  <TimeSlotPicker date={selectedDate} selectedHour={selectedHour} onSelectHour={setSelectedHour} />
+                </>
+              )}
+              {scheduledIso && <Text style={styles.selectedDateTime}>選択中: {formatDateTimeJST(scheduledIso)}〜</Text>}
             </View>
           )}
 
@@ -240,9 +238,8 @@ const styles = StyleSheet.create({
   venueCity: { fontSize: 12, color: palette.textMuted },
   fieldLabel: { fontSize: 13, fontWeight: '700', color: palette.text, marginTop: 4 },
   toggleRow: { flexDirection: 'row', gap: 10 },
-  slotGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  slotCard: { paddingVertical: 10, paddingHorizontal: 12 },
-  slotLabel: { fontSize: 12, fontWeight: '600', color: palette.text },
+  dateTimeSection: { gap: 12 },
+  selectedDateTime: { color: palette.goldBright, fontSize: 13, fontWeight: '700' },
   stepperRow: { gap: 6 },
   stepperControl: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   stepperValue: { fontSize: 16, fontWeight: '700', minWidth: 40, textAlign: 'center', color: palette.text },
