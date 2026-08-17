@@ -1,7 +1,10 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { palette } from './ui';
+
+const HERO_IMAGE = require('../../assets/images/hero-toast.png');
+const STRIP_IMAGE = require('../../assets/images/table-setting.png');
 
 const BOKEH_LARGE = [
   { top: '6%', left: '78%', size: 46, opacity: 0.16 },
@@ -59,24 +62,25 @@ export function SilhouetteMotif({
 
 export function GlamourHero({ children }: { children: React.ReactNode }) {
   return (
-    <LinearGradient colors={['#241A0C', palette.bgElevated, '#140F08']} style={styles.hero}>
+    <ImageBackground source={HERO_IMAGE} style={styles.hero} imageStyle={styles.heroImage}>
+      <LinearGradient
+        colors={['rgba(11,11,12,0.55)', 'rgba(11,11,12,0.75)', 'rgba(11,11,12,0.92)']}
+        style={StyleSheet.absoluteFill}
+      />
       <BokehField dense />
-      <View style={[styles.heroSilhouettes, styles.noPointerEvents]}>
-        <SilhouetteMotif size={230} opacity={0.32} style={{ marginRight: -34 }} />
-        <SilhouetteMotif size={250} opacity={0.4} />
-      </View>
       <View style={styles.heroContent}>{children}</View>
-    </LinearGradient>
+    </ImageBackground>
   );
 }
 
 export function GlamourStrip({ title }: { title: string }) {
   return (
-    <LinearGradient colors={['#201708', palette.bgElevated]} style={styles.strip}>
+    <ImageBackground source={STRIP_IMAGE} style={styles.strip} imageStyle={styles.heroImage}>
+      <LinearGradient colors={['rgba(11,11,12,0.72)', 'rgba(11,11,12,0.88)']} style={StyleSheet.absoluteFill} />
       <BokehField />
       <SilhouetteMotif size={140} opacity={0.3} style={styles.stripSilhouette} />
       <Text style={styles.stripTitle}>{title}</Text>
-    </LinearGradient>
+    </ImageBackground>
   );
 }
 
@@ -108,14 +112,7 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
     paddingHorizontal: 20,
   },
-  heroSilhouettes: {
-    position: 'absolute',
-    bottom: -18,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
+  heroImage: { resizeMode: 'cover' },
   heroContent: { alignItems: 'center', gap: 10 },
   strip: {
     borderRadius: 16,
