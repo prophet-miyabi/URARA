@@ -11,8 +11,7 @@ services:
 
   - type: web
     name: urara-app
-    env: static
-    plan: free
+    runtime: static
     buildCommand: npm install && npm run build:web --workspace=apps/mobile
     staticPublishPath: apps/mobile/dist
     envVars:
