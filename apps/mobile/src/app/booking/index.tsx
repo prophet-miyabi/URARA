@@ -3,20 +3,21 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { calculatePrice } from '@companion-dispatch/pricing';
 import { useReservationStore } from '@/lib/reservation-store';
-import type { BookingType, PaymentMethod } from '@/lib/types';
+import type { BookingType, Location, PaymentMethod } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
-import { Card, PressableCard, GoldButton, SecondaryButton, palette } from '@/components/ui';
+import { Card, GoldButton, SecondaryButton, palette } from '@/components/ui';
 import { GlamourStrip, TrustBadges } from '@/components/glamour';
 import { CalendarPicker, TimeSlotPicker } from '@/components/calendar';
+import { LocationPicker } from '@/components/location-picker';
 
-const STEP_LABELS = ['店舗選択', '予約内容', 'お支払い・確認'];
+const STEP_LABELS = ['ご予約内容', 'お支払い・確認'];
 
 export default function BookingScreen() {
   const router = useRouter();
-  const { venues, createReservation } = useReservationStore();
+  const { savedLocations, recordLocationUsage, createReservation } = useReservationStore();
   const [step, setStep] = useState(0);
 
-  const [venueId, setVenueId] = useState<string | null>(null);
+  const [location, setLocation] = useState<Location | null>(null);
   const [bookingType, setBookingType] = useState<BookingType>('scheduled');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
@@ -36,13 +37,17 @@ export default function BookingScreen() {
 
   const requestedDatetime = bookingType === 'now' ? new Date().toISOString() : scheduledIso;
 
-  const canProceedStep0 = venueId !== null;
-  const canProceedStep1 = bookingType === 'now' || scheduledIso !== null;
+  const canProceedStep0 = location !== null && (bookingType === 'now' || scheduledIso !== null);
+
+  const handleSelectLocation = (loc: Location) => {
+    setLocation(loc);
+    recordLocationUsage(loc);
+  };
 
   const handleSubmit = () => {
-    if (!venueId || !requestedDatetime) return;
+    if (!location || !requestedDatetime) return;
     const reservation = createReservation({
-      venueId,
+      location,
       bookingType,
       requestedDatetime,
       guestCount,
@@ -70,26 +75,13 @@ export default function BookingScreen() {
 
       {step === 0 && (
         <View style={styles.stepBody}>
-          <Text style={styles.stepTitle}>利用する店舗を選択してください</Text>
-          <Text style={styles.stepHint}>登録済みの飲食店・宴会場・イベント会場のみご利用いただけます</Text>
-          {venues.map((v) => (
-            <PressableCard
-              key={v.id}
-              style={[styles.venueCard, venueId === v.id && styles.venueCardSelected]}
-              onPress={() => setVenueId(v.id)}
-            >
-              <Text style={styles.venueName}>{v.name}</Text>
-              <Text style={styles.venueCity}>{v.city}</Text>
-            </PressableCard>
-          ))}
-        </View>
-      )}
+          <Text style={styles.stepTitle}>ご利用の場所</Text>
+          <Text style={styles.stepHint}>
+            飲食店・宴会場・イベント会場からお選びください（個人宅・ホテルのお部屋へは派遣できません）
+          </Text>
+          <LocationPicker value={location} onChange={handleSelectLocation} savedLocations={savedLocations} />
 
-      {step === 1 && (
-        <View style={styles.stepBody}>
-          <Text style={styles.stepTitle}>予約内容</Text>
-
-          <Text style={styles.fieldLabel}>ご利用日時</Text>
+          <Text style={[styles.fieldLabel, { marginTop: 8 }]}>ご利用日時</Text>
           <View style={styles.toggleRow}>
             <SecondaryButton
               label={bookingType === 'now' ? '✓ 今すぐ予約' : '今すぐ予約'}
@@ -126,12 +118,12 @@ export default function BookingScreen() {
           <Card style={styles.priceCard}>
             <Text style={styles.priceLabel}>料金目安（基本2時間）</Text>
             <Text style={styles.priceValue}>{formatYen(price.totalPrice)}</Text>
-            <Text style={styles.priceNote}>※出張料は店舗確定後に別途加算されます</Text>
+            <Text style={styles.priceNote}>※出張料は場所確定後に別途加算されます</Text>
           </Card>
         </View>
       )}
 
-      {step === 2 && (
+      {step === 1 && (
         <View style={styles.stepBody}>
           <Text style={styles.stepTitle}>お支払い方法・確認</Text>
 
@@ -176,14 +168,8 @@ export default function BookingScreen() {
 
       <View style={styles.nav}>
         {step > 0 && <SecondaryButton label="戻る" onPress={() => setStep((s) => s - 1)} />}
-        {step < 2 && (
-          <GoldButton
-            label="次へ"
-            disabled={step === 0 ? !canProceedStep0 : !canProceedStep1}
-            onPress={() => setStep((s) => s + 1)}
-          />
-        )}
-        {step === 2 && <GoldButton label="この内容で申し込む" onPress={handleSubmit} />}
+        {step < 1 && <GoldButton label="次へ" disabled={!canProceedStep0} onPress={() => setStep((s) => s + 1)} />}
+        {step === 1 && <GoldButton label="この内容で申し込む" onPress={handleSubmit} />}
       </View>
     </ScrollView>
   );
@@ -232,10 +218,6 @@ const styles = StyleSheet.create({
   stepBody: { gap: 14 },
   stepTitle: { fontSize: 18, fontWeight: '800', color: palette.text },
   stepHint: { fontSize: 12, color: palette.textMuted, marginTop: -8 },
-  venueCard: { gap: 2 },
-  venueCardSelected: { borderColor: palette.gold, borderWidth: 2 },
-  venueName: { fontSize: 15, fontWeight: '700', color: palette.text },
-  venueCity: { fontSize: 12, color: palette.textMuted },
   fieldLabel: { fontSize: 13, fontWeight: '700', color: palette.text, marginTop: 4 },
   toggleRow: { flexDirection: 'row', gap: 10 },
   dateTimeSection: { gap: 12 },

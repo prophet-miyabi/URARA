@@ -1,9 +1,10 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { MOCK_MY_RESERVATIONS, MOCK_VENUES } from './mock-data';
-import type { Reservation, Venue } from './types';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { MOCK_MY_RESERVATIONS } from './mock-data';
+import { getSavedLocations, saveLocation } from './saved-locations';
+import type { Location, Reservation } from './types';
 
 export interface NewReservationInput {
-  venueId: string;
+  location: Location;
   bookingType: Reservation['bookingType'];
   requestedDatetime: string;
   guestCount: number;
@@ -15,20 +16,30 @@ export interface NewReservationInput {
 
 interface Store {
   reservations: Reservation[];
-  venues: Venue[];
+  savedLocations: Location[];
   isLoggedIn: boolean;
   login: () => void;
   createReservation: (input: NewReservationInput) => Reservation;
   getReservation: (id: string) => Reservation | undefined;
+  recordLocationUsage: (location: Location) => void;
 }
 
 const ReservationContext = createContext<Store | null>(null);
 
 export function ReservationProvider({ children }: { children: React.ReactNode }) {
   const [reservations, setReservations] = useState<Reservation[]>(MOCK_MY_RESERVATIONS);
+  const [savedLocations, setSavedLocations] = useState<Location[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
+  useEffect(() => {
+    getSavedLocations().then(setSavedLocations);
+  }, []);
+
   const login = useCallback(() => setIsLoggedIn(true), []);
+
+  const recordLocationUsage = useCallback((location: Location) => {
+    saveLocation(location).then(setSavedLocations);
+  }, []);
 
   const createReservation = useCallback((input: NewReservationInput) => {
     const reservation: Reservation = {
@@ -50,13 +61,14 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
   const value = useMemo(
     () => ({
       reservations,
-      venues: MOCK_VENUES,
+      savedLocations,
       isLoggedIn,
       login,
       createReservation,
       getReservation,
+      recordLocationUsage,
     }),
-    [reservations, isLoggedIn, login, createReservation, getReservation]
+    [reservations, savedLocations, isLoggedIn, login, createReservation, getReservation, recordLocationUsage]
   );
 
   return <ReservationContext.Provider value={value}>{children}</ReservationContext.Provider>;

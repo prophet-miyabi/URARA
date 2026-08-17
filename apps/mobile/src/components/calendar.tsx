@@ -51,8 +51,8 @@ function MonthGrid({
   selectedDate: Date | null;
   onSelectDate: (date: Date) => void;
 }) {
-  const [year, setYear] = require('react').useState(initialYear);
-  const [month, setMonth] = require('react').useState(initialMonth);
+  const [year, setYear] = useState(initialYear);
+  const [month, setMonth] = useState(initialMonth);
 
   const firstDay = new Date(year, month, 1);
   const startWeekday = firstDay.getDay();

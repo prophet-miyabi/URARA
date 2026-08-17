@@ -1,11 +1,4 @@
-import type { CastProfile, Reservation, Venue } from './types';
-
-export const MOCK_VENUES: Venue[] = [
-  { id: 'v1', name: '甲府 個室居酒屋 花月', city: '甲府市', venueType: 'restaurant' },
-  { id: 'v2', name: '昭和町 宴会場 かがやき', city: '昭和町', venueType: 'banquet_hall' },
-  { id: 'v3', name: '石和温泉 大広間 雅', city: '笛吹市石和町', venueType: 'banquet_hall' },
-  { id: 'v4', name: '甲府 イベントホール SORA', city: '甲府市', venueType: 'event_venue' },
-];
+import type { CastProfile, Location, Reservation } from './types';
 
 export const MOCK_CAST: CastProfile[] = [
   { id: 'ca1', nickname: 'あゆ', tagline: '明るい会話で場を盛り上げます', tone: '朗らか' },
@@ -16,6 +9,22 @@ export const MOCK_CAST: CastProfile[] = [
   { id: 'ca6', nickname: 'まい', tagline: '宴会を華やかに彩ります', tone: '華やか' },
 ];
 
+const MOCK_LOCATION_ISHIWA: Location = {
+  placeId: 'mock-place-ishiwa',
+  name: '石和温泉 大広間 雅',
+  address: '山梨県笛吹市石和町市部2-4-1',
+  lat: 35.6547,
+  lng: 138.6336,
+};
+
+const MOCK_LOCATION_KOFU: Location = {
+  placeId: 'mock-place-kofu',
+  name: '甲府 個室居酒屋 花月',
+  address: '山梨県甲府市丸の内1-2-3',
+  lat: 35.6642,
+  lng: 138.5686,
+};
+
 const now = new Date();
 function hoursFromNow(h: number) {
   return new Date(now.getTime() + h * 60 * 60 * 1000).toISOString();
@@ -24,7 +33,7 @@ function hoursFromNow(h: number) {
 export const MOCK_MY_RESERVATIONS: Reservation[] = [
   {
     id: 'r3',
-    venueId: 'v3',
+    location: MOCK_LOCATION_ISHIWA,
     bookingType: 'scheduled',
     requestedDatetime: hoursFromNow(50),
     guestCount: 8,
@@ -38,7 +47,7 @@ export const MOCK_MY_RESERVATIONS: Reservation[] = [
   },
   {
     id: 'r5',
-    venueId: 'v1',
+    location: MOCK_LOCATION_KOFU,
     bookingType: 'scheduled',
     requestedDatetime: hoursFromNow(-1),
     guestCount: 4,

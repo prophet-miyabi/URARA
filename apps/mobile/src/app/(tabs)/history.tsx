@@ -16,14 +16,12 @@ const STATUS_TONE: Record<ReservationStatus, 'neutral' | 'success' | 'warning' |
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const { reservations, venues } = useReservationStore();
-
-  const venueName = (id: string) => venues.find((v) => v.id === id)?.name ?? '';
+  const { reservations } = useReservationStore();
 
   const renderItem = ({ item }: { item: Reservation }) => (
     <PressableCard style={styles.item} onPress={() => router.push(`/reservation/${item.id}`)}>
       <View style={styles.itemHeader}>
-        <Text style={styles.itemVenue}>{venueName(item.venueId)}</Text>
+        <Text style={styles.itemVenue}>{item.location.name}</Text>
         <Badge label={STATUS_LABEL[item.status]} tone={STATUS_TONE[item.status]} />
       </View>
       <Text style={styles.itemMeta}>{formatDateTimeJST(item.requestedDatetime)}</Text>

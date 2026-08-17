@@ -13,11 +13,12 @@ export const STATUS_STEPS: ReservationStatus[] = ['received', 'arranging', 'conf
 export type BookingType = 'now' | 'scheduled';
 export type PaymentMethod = 'cash' | 'card';
 
-export interface Venue {
-  id: string;
+export interface Location {
+  placeId: string;
   name: string;
-  city: string;
-  venueType: 'restaurant' | 'banquet_hall' | 'event_venue';
+  address: string;
+  lat: number;
+  lng: number;
 }
 
 export interface CastProfile {
@@ -29,7 +30,7 @@ export interface CastProfile {
 
 export interface Reservation {
   id: string;
-  venueId: string;
+  location: Location;
   bookingType: BookingType;
   requestedDatetime: string;
   guestCount: number;

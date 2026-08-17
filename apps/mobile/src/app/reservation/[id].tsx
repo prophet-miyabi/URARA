@@ -16,7 +16,7 @@ const STAGE_MESSAGE: Record<string, string> = {
 
 export default function ReservationDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getReservation, venues } = useReservationStore();
+  const { getReservation } = useReservationStore();
   const reservation = getReservation(id);
 
   if (!reservation) {
@@ -27,7 +27,6 @@ export default function ReservationDetailScreen() {
     );
   }
 
-  const venue = venues.find((v) => v.id === reservation.venueId);
   const price = calculatePrice({
     companionCount: reservation.companionCount,
     durationHours: reservation.durationHours,
@@ -60,7 +59,8 @@ export default function ReservationDetailScreen() {
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>予約内容</Text>
-        <Row label="店舗" value={venue?.name ?? '-'} />
+        <Row label="場所" value={reservation.location.name} />
+        {!!reservation.location.address && <Row label="住所" value={reservation.location.address} />}
         <Row label="日時" value={formatDateTimeJST(reservation.requestedDatetime)} />
         <Row label="お客様人数" value={`${reservation.guestCount}名`} />
         <Row label="女の子人数" value={`${reservation.companionCount}名`} />

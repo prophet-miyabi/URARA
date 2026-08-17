@@ -9,12 +9,11 @@ import { GlamourStrip } from '@/components/glamour';
 
 export default function BookingTabScreen() {
   const router = useRouter();
-  const { reservations, venues } = useReservationStore();
+  const { reservations } = useReservationStore();
 
   const activeReservations = reservations.filter(
     (r) => r.status !== 'completed' && r.status !== 'cancelled'
   );
-  const venueName = (id: string) => venues.find((v) => v.id === id)?.name ?? '';
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -36,7 +35,7 @@ export default function BookingTabScreen() {
             return (
               <PressableCard key={r.id} style={styles.card} onPress={() => router.push(`/reservation/${r.id}`)}>
                 <View style={styles.cardHeader}>
-                  <Text style={styles.cardVenue}>{venueName(r.venueId)}</Text>
+                  <Text style={styles.cardVenue}>{r.location.name}</Text>
                   <Badge label={STATUS_LABEL[r.status]} tone="warning" />
                 </View>
                 <Text style={styles.cardMeta}>{formatDateTimeJST(r.requestedDatetime)}</Text>
