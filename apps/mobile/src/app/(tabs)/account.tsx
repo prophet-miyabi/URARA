@@ -1,8 +1,19 @@
-import { ScrollView, StyleSheet, Text } from 'react-native';
-import { Badge, Card, palette } from '@/components/ui';
+import { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import { useReservationStore } from '@/lib/reservation-store';
+import { isValidEmail } from '@/lib/profile';
+import { Badge, Card, SecondaryButton, palette } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
 
 export default function AccountScreen() {
+  const { contactEmail, updateContactEmail } = useReservationStore();
+  const [draft, setDraft] = useState(contactEmail);
+
+  useEffect(() => setDraft(contactEmail), [contactEmail]);
+
+  const dirty = draft.trim() !== contactEmail;
+  const valid = draft.trim().length === 0 || isValidEmail(draft);
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <GlamourStrip title="マイページ" />
@@ -10,6 +21,24 @@ export default function AccountScreen() {
       <Card style={styles.card}>
         <Text style={styles.name}>山本 太郎 様</Text>
         <Text style={styles.phone}>080-1234-5678</Text>
+      </Card>
+
+      <Card style={styles.card}>
+        <Text style={styles.rowLabel}>メールアドレス</Text>
+        <Text style={styles.emailHint}>予約の受付完了通知をお送りします</Text>
+        <TextInput
+          style={styles.input}
+          value={draft}
+          onChangeText={setDraft}
+          placeholder="you@example.com"
+          placeholderTextColor={palette.textFaint}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+        {!valid && <Text style={styles.error}>メールアドレスの形式が正しくありません</Text>}
+        {dirty && valid && (
+          <SecondaryButton label="保存する" onPress={() => updateContactEmail(draft.trim())} />
+        )}
       </Card>
 
       <Card style={styles.row}>
@@ -42,11 +71,23 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bg },
   content: { padding: 20, gap: 12 },
-  card: { gap: 4 },
+  card: { gap: 8 },
   name: { fontSize: 18, fontWeight: '800', color: palette.text },
   phone: { fontSize: 13, color: palette.textMuted },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
   rowLabel: { fontSize: 14, fontWeight: '600', color: palette.text },
   rowValue: { fontSize: 13, color: palette.textMuted, flexShrink: 1, textAlign: 'right' },
+  emailHint: { fontSize: 11, color: palette.textFaint, marginTop: -4 },
+  input: {
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: palette.text,
+    backgroundColor: palette.bgElevated,
+  },
+  error: { color: palette.danger, fontSize: 11 },
   note: { fontSize: 11, color: palette.textFaint, marginTop: 8 },
 });

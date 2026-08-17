@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { MOCK_MY_RESERVATIONS } from './mock-data';
+import { sendReservationReceivedEmail } from './notify';
+import { getSavedEmail, saveEmail } from './profile';
 import { getSavedLocations, saveLocation } from './saved-locations';
 import type { Location, Reservation } from './types';
 
@@ -12,16 +14,19 @@ export interface NewReservationInput {
   durationHours: number;
   paymentMethod: Reservation['paymentMethod'];
   notes: string;
+  contactEmail: string;
 }
 
 interface Store {
   reservations: Reservation[];
   savedLocations: Location[];
+  contactEmail: string;
   isLoggedIn: boolean;
   login: () => void;
   createReservation: (input: NewReservationInput) => Reservation;
   getReservation: (id: string) => Reservation | undefined;
   recordLocationUsage: (location: Location) => void;
+  updateContactEmail: (email: string) => void;
 }
 
 const ReservationContext = createContext<Store | null>(null);
@@ -29,16 +34,23 @@ const ReservationContext = createContext<Store | null>(null);
 export function ReservationProvider({ children }: { children: React.ReactNode }) {
   const [reservations, setReservations] = useState<Reservation[]>(MOCK_MY_RESERVATIONS);
   const [savedLocations, setSavedLocations] = useState<Location[]>([]);
+  const [contactEmail, setContactEmail] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   useEffect(() => {
     getSavedLocations().then(setSavedLocations);
+    getSavedEmail().then(setContactEmail);
   }, []);
 
   const login = useCallback(() => setIsLoggedIn(true), []);
 
   const recordLocationUsage = useCallback((location: Location) => {
     saveLocation(location).then(setSavedLocations);
+  }, []);
+
+  const updateContactEmail = useCallback((email: string) => {
+    setContactEmail(email);
+    saveEmail(email);
   }, []);
 
   const createReservation = useCallback((input: NewReservationInput) => {
@@ -50,6 +62,7 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
       ...input,
     };
     setReservations((prev) => [reservation, ...prev]);
+    sendReservationReceivedEmail(reservation);
     return reservation;
   }, []);
 
@@ -62,13 +75,25 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
     () => ({
       reservations,
       savedLocations,
+      contactEmail,
       isLoggedIn,
       login,
       createReservation,
       getReservation,
       recordLocationUsage,
+      updateContactEmail,
     }),
-    [reservations, savedLocations, isLoggedIn, login, createReservation, getReservation, recordLocationUsage]
+    [
+      reservations,
+      savedLocations,
+      contactEmail,
+      isLoggedIn,
+      login,
+      createReservation,
+      getReservation,
+      recordLocationUsage,
+      updateContactEmail,
+    ]
   );
 
   return <ReservationContext.Provider value={value}>{children}</ReservationContext.Provider>;

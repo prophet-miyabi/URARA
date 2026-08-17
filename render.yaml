@@ -8,6 +8,10 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20.18.0
+      - key: RESEND_API_KEY
+        sync: false
+      - key: NOTIFY_FROM_ADDRESS
+        sync: false
 
   - type: web
     name: urara-app
@@ -17,6 +21,8 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20.18.0
+      - key: EXPO_PUBLIC_GOOGLE_PLACES_API_KEY
+        sync: false
     routes:
       - type: rewrite
         source: /*

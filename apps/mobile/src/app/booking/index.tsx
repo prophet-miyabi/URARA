@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { calculatePrice } from '@companion-dispatch/pricing';
 import { useReservationStore } from '@/lib/reservation-store';
+import { isValidEmail } from '@/lib/profile';
 import type { BookingType, Location, PaymentMethod } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
 import { Card, GoldButton, SecondaryButton, palette } from '@/components/ui';
@@ -14,7 +15,8 @@ const STEP_LABELS = ['ご予約内容', 'お支払い・確認'];
 
 export default function BookingScreen() {
   const router = useRouter();
-  const { savedLocations, recordLocationUsage, createReservation } = useReservationStore();
+  const { savedLocations, recordLocationUsage, contactEmail, updateContactEmail, createReservation } =
+    useReservationStore();
   const [step, setStep] = useState(0);
 
   const [location, setLocation] = useState<Location | null>(null);
@@ -25,6 +27,12 @@ export default function BookingScreen() {
   const [companionCount, setCompanionCount] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [notes, setNotes] = useState('');
+  const [email, setEmail] = useState(contactEmail);
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  useEffect(() => {
+    if (!emailTouched) setEmail(contactEmail);
+  }, [contactEmail, emailTouched]);
 
   const price = calculatePrice({ companionCount, durationHours: 2 });
 
@@ -38,6 +46,7 @@ export default function BookingScreen() {
   const requestedDatetime = bookingType === 'now' ? new Date().toISOString() : scheduledIso;
 
   const canProceedStep0 = location !== null && (bookingType === 'now' || scheduledIso !== null);
+  const canSubmit = isValidEmail(email);
 
   const handleSelectLocation = (loc: Location) => {
     setLocation(loc);
@@ -45,7 +54,9 @@ export default function BookingScreen() {
   };
 
   const handleSubmit = () => {
-    if (!location || !requestedDatetime) return;
+    if (!location || !requestedDatetime || !canSubmit) return;
+    const trimmedEmail = email.trim();
+    if (trimmedEmail !== contactEmail) updateContactEmail(trimmedEmail);
     const reservation = createReservation({
       location,
       bookingType,
@@ -55,6 +66,7 @@ export default function BookingScreen() {
       durationHours: 2,
       paymentMethod,
       notes,
+      contactEmail: trimmedEmail,
     });
     router.replace(`/reservation/${reservation.id}`);
   };
@@ -127,6 +139,24 @@ export default function BookingScreen() {
         <View style={styles.stepBody}>
           <Text style={styles.stepTitle}>お支払い方法・確認</Text>
 
+          <Text style={styles.fieldLabel}>メールアドレス</Text>
+          <Text style={styles.stepHint}>予約の受付完了通知をお送りします</Text>
+          <TextInput
+            style={styles.emailInput}
+            value={email}
+            onChangeText={(v) => {
+              setEmail(v);
+              setEmailTouched(true);
+            }}
+            placeholder="you@example.com"
+            placeholderTextColor={palette.textFaint}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          {email.length > 0 && !isValidEmail(email) && (
+            <Text style={styles.emailError}>メールアドレスの形式が正しくありません</Text>
+          )}
+
           <Text style={styles.fieldLabel}>お支払い方法</Text>
           <View style={styles.toggleRow}>
             <SecondaryButton
@@ -169,7 +199,7 @@ export default function BookingScreen() {
       <View style={styles.nav}>
         {step > 0 && <SecondaryButton label="戻る" onPress={() => setStep((s) => s - 1)} />}
         {step < 1 && <GoldButton label="次へ" disabled={!canProceedStep0} onPress={() => setStep((s) => s + 1)} />}
-        {step === 1 && <GoldButton label="この内容で申し込む" onPress={handleSubmit} />}
+        {step === 1 && <GoldButton label="この内容で申し込む" disabled={!canSubmit} onPress={handleSubmit} />}
       </View>
     </ScrollView>
   );
@@ -241,5 +271,16 @@ const styles = StyleSheet.create({
     color: palette.text,
   },
   disclaimer: { fontSize: 11, color: palette.textMuted, lineHeight: 16 },
+  emailInput: {
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: palette.text,
+    backgroundColor: palette.card,
+  },
+  emailError: { color: palette.danger, fontSize: 11, marginTop: -8 },
   nav: { flexDirection: 'row', gap: 10, justifyContent: 'flex-end' },
 });

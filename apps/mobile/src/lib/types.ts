@@ -39,6 +39,7 @@ export interface Reservation {
   travelFee: number;
   paymentMethod: PaymentMethod;
   notes: string;
+  contactEmail: string;
   status: ReservationStatus;
   createdAt: string;
 }
