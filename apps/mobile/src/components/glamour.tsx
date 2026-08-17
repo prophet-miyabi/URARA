@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { palette } from './ui';
 
 const HERO_IMAGE = require('../../assets/images/hero-toast.png');
-const STRIP_IMAGE = require('../../assets/images/table-setting.png');
+const STRIP_IMAGE = require('../../assets/images/dinner-toast.png');
 
 const BOKEH_LARGE = [
   { top: '6%', left: '78%', size: 46, opacity: 0.16 },
