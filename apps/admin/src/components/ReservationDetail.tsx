@@ -88,15 +88,15 @@ export function ReservationDetail({ id }: { id: string }) {
       </div>
 
       {/* Status stepper */}
-      <div className="mb-6 rounded-lg border border-neutral-200 bg-white p-4">
-        <div className="flex items-center gap-2 text-xs">
+      <div className="mb-6 rounded-lg border border-neutral-200 bg-white p-3 sm:p-4">
+        <div className="flex items-center gap-1 text-[11px] sm:gap-2 sm:text-xs">
           {(["received", "arranging", "confirmed", "completed"] as ReservationStatus[]).map((s, i, arr) => {
             const currentIndex = ["received", "arranging", "confirmed", "completed"].indexOf(reservation.status);
             const reached = reservation.status !== "cancelled" && i <= currentIndex;
             return (
-              <div key={s} className="flex items-center gap-2 flex-1">
+              <div key={s} className="flex flex-1 items-center gap-1 sm:gap-2">
                 <div
-                  className={`flex-1 rounded-full py-2 text-center font-semibold ${
+                  className={`flex-1 rounded-full px-1 py-1.5 text-center font-semibold sm:py-2 ${
                     reached ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-400"
                   }`}
                 >
@@ -112,7 +112,7 @@ export function ReservationDetail({ id }: { id: string }) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Left column: details */}
         <div className="space-y-6">
           <section className="rounded-lg border border-neutral-200 bg-white p-4">

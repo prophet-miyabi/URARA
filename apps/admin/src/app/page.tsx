@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useReservationStore } from "@/lib/reservation-store";
-import { STATUS_LABEL, type ReservationStatus } from "@/lib/types";
+import { STATUS_LABEL, type Reservation, type ReservationStatus } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTimeJST, formatYen } from "@/lib/format";
 import { calculatePrice } from "@companion-dispatch/pricing";
@@ -39,12 +39,12 @@ export default function ReservationsQueuePage() {
         <span className="text-sm text-neutral-500">全 {reservations.length} 件</span>
       </div>
 
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition ${
               filter === f.value
                 ? "bg-neutral-900 text-white"
                 : "bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-100"
@@ -55,65 +55,107 @@ export default function ReservationsQueuePage() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
-        <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-left text-neutral-500">
-            <tr>
-              <th className="px-4 py-2 font-medium">種別</th>
-              <th className="px-4 py-2 font-medium">お客様</th>
-              <th className="px-4 py-2 font-medium">店舗</th>
-              <th className="px-4 py-2 font-medium">日時</th>
-              <th className="px-4 py-2 font-medium">人数</th>
-              <th className="px-4 py-2 font-medium">金額目安</th>
-              <th className="px-4 py-2 font-medium">状況</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((r) => {
-              const price = calculatePrice({
-                companionCount: r.companionCount,
-                durationHours: r.durationHours,
-                travelFee: r.travelFee,
-              });
-              return (
-                <tr key={r.id} className="border-t border-neutral-100 hover:bg-neutral-50">
-                  <td className="px-4 py-3">
-                    {r.bookingType === "now" ? (
-                      <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700">
-                        今すぐ
-                      </span>
-                    ) : (
-                      <span className="text-xs text-neutral-500">日時指定</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Link href={`/reservations/${r.id}`} className="font-medium text-neutral-900 hover:underline">
-                      {r.contactName}
-                    </Link>
-                    <div className="text-xs text-neutral-400">{r.contactPhone}</div>
-                  </td>
-                  <td className="px-4 py-3">{venueName(r.venueId)}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">{formatDateTimeJST(r.requestedDatetime)}</td>
-                  <td className="px-4 py-3">
-                    客{r.guestCount}名 / 女の子{r.companionCount}名
-                  </td>
-                  <td className="px-4 py-3">{formatYen(price.totalPrice)}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={r.status} />
-                  </td>
+      {filtered.length === 0 ? (
+        <div className="rounded-lg border border-neutral-200 bg-white px-4 py-8 text-center text-neutral-400">
+          該当する予約はありません
+        </div>
+      ) : (
+        <>
+          {/* Mobile: card list */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {filtered.map((r) => (
+              <ReservationCard key={r.id} reservation={r} venueName={venueName(r.venueId)} />
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden overflow-hidden rounded-lg border border-neutral-200 bg-white md:block">
+            <table className="w-full text-sm">
+              <thead className="bg-neutral-50 text-left text-neutral-500">
+                <tr>
+                  <th className="px-4 py-2 font-medium">種別</th>
+                  <th className="px-4 py-2 font-medium">お客様</th>
+                  <th className="px-4 py-2 font-medium">店舗</th>
+                  <th className="px-4 py-2 font-medium">日時</th>
+                  <th className="px-4 py-2 font-medium">人数</th>
+                  <th className="px-4 py-2 font-medium">金額目安</th>
+                  <th className="px-4 py-2 font-medium">状況</th>
                 </tr>
-              );
-            })}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-neutral-400">
-                  該当する予約はありません
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {filtered.map((r) => {
+                  const price = calculatePrice({
+                    companionCount: r.companionCount,
+                    durationHours: r.durationHours,
+                    travelFee: r.travelFee,
+                  });
+                  return (
+                    <tr key={r.id} className="border-t border-neutral-100 hover:bg-neutral-50">
+                      <td className="px-4 py-3">
+                        {r.bookingType === "now" ? (
+                          <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700">
+                            今すぐ
+                          </span>
+                        ) : (
+                          <span className="text-xs text-neutral-500">日時指定</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Link href={`/reservations/${r.id}`} className="font-medium text-neutral-900 hover:underline">
+                          {r.contactName}
+                        </Link>
+                        <div className="text-xs text-neutral-400">{r.contactPhone}</div>
+                      </td>
+                      <td className="px-4 py-3">{venueName(r.venueId)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">{formatDateTimeJST(r.requestedDatetime)}</td>
+                      <td className="px-4 py-3">
+                        客{r.guestCount}名 / 女の子{r.companionCount}名
+                      </td>
+                      <td className="px-4 py-3">{formatYen(price.totalPrice)}</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={r.status} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
+  );
+}
+
+function ReservationCard({ reservation: r, venueName }: { reservation: Reservation; venueName: string }) {
+  const price = calculatePrice({
+    companionCount: r.companionCount,
+    durationHours: r.durationHours,
+    travelFee: r.travelFee,
+  });
+
+  return (
+    <Link
+      href={`/reservations/${r.id}`}
+      className="block rounded-lg border border-neutral-200 bg-white p-4 active:bg-neutral-50"
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
+        {r.bookingType === "now" ? (
+          <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700">今すぐ</span>
+        ) : (
+          <span className="text-xs text-neutral-500">日時指定</span>
+        )}
+        <StatusBadge status={r.status} />
+      </div>
+      <p className="font-medium text-neutral-900">{r.contactName}</p>
+      <p className="text-xs text-neutral-400">{r.contactPhone}</p>
+      <div className="mt-2 space-y-0.5 text-sm text-neutral-600">
+        <p>{venueName}</p>
+        <p>{formatDateTimeJST(r.requestedDatetime)}</p>
+        <p>
+          客{r.guestCount}名 / 女の子{r.companionCount}名 ・ {formatYen(price.totalPrice)}
+        </p>
+      </div>
+    </Link>
   );
 }
