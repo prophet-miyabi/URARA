@@ -13,7 +13,7 @@ const SUPPORT_HOURS = '受付時間 10:00〜24:00（年中無休）';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { reservations, isLoggedIn } = useReservationStore();
+  const { reservations } = useReservationStore();
 
   const activeReservation = reservations.find(
     (r) => r.status !== 'completed' && r.status !== 'cancelled'

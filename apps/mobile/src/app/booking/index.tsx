@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { calculatePrice } from '@companion-dispatch/pricing';
@@ -29,10 +29,14 @@ export default function BookingScreen() {
   const [notes, setNotes] = useState('');
   const [email, setEmail] = useState(contactEmail);
   const [emailTouched, setEmailTouched] = useState(false);
+  const [lastSeenContactEmail, setLastSeenContactEmail] = useState(contactEmail);
 
-  useEffect(() => {
-    if (!emailTouched) setEmail(contactEmail);
-  }, [contactEmail, emailTouched]);
+  // contactEmail loads asynchronously from storage after mount; sync the
+  // field once it arrives, but never once the user has started typing.
+  if (!emailTouched && contactEmail !== lastSeenContactEmail) {
+    setLastSeenContactEmail(contactEmail);
+    setEmail(contactEmail);
+  }
 
   const price = calculatePrice({ companionCount, durationHours: 2 });
 

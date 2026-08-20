@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 import { useReservationStore } from '@/lib/reservation-store';
 import { isValidEmail } from '@/lib/profile';
@@ -8,8 +8,14 @@ import { GlamourStrip } from '@/components/glamour';
 export default function AccountScreen() {
   const { contactEmail, updateContactEmail } = useReservationStore();
   const [draft, setDraft] = useState(contactEmail);
+  const [lastSeenEmail, setLastSeenEmail] = useState(contactEmail);
 
-  useEffect(() => setDraft(contactEmail), [contactEmail]);
+  // contactEmail loads asynchronously from storage after mount; sync the draft
+  // once it arrives without clobbering anything the user has already typed.
+  if (contactEmail !== lastSeenEmail) {
+    setLastSeenEmail(contactEmail);
+    setDraft(contactEmail);
+  }
 
   const dirty = draft.trim() !== contactEmail;
   const valid = draft.trim().length === 0 || isValidEmail(draft);

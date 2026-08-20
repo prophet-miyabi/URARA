@@ -10,17 +10,19 @@ export interface PlaceSuggestion {
   secondaryText: string;
 }
 
-interface AutocompleteResponse {
-  suggestions?: Array<{
-    placePrediction?: {
-      placeId: string;
-      structuredFormat?: {
-        mainText?: { text: string };
-        secondaryText?: { text: string };
-      };
-      text?: { text: string };
+interface AutocompleteSuggestion {
+  placePrediction?: {
+    placeId: string;
+    structuredFormat?: {
+      mainText?: { text: string };
+      secondaryText?: { text: string };
     };
-  }>;
+    text?: { text: string };
+  };
+}
+
+interface AutocompleteResponse {
+  suggestions?: AutocompleteSuggestion[];
 }
 
 // Uses the Places API (New) — https://developers.google.com/maps/documentation/places/web-service/place-autocomplete

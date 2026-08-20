@@ -53,7 +53,11 @@ export const MOCK_CUSTOMERS: Customer[] = [
   { id: "u3", fullName: "中村 三郎", phoneNumber: "080-3456-7890", identityVerificationStatus: "pending_review" },
 ];
 
-const now = new Date();
+// Fixed reference point (not `new Date()`) so this module produces identical
+// output on the server and during client hydration — using the real clock
+// here caused a React hydration mismatch (server vs. client render a few
+// milliseconds apart, so every derived timestamp differed).
+const now = new Date("2026-08-18T09:00:00+09:00");
 function hoursFromNow(h: number) {
   return new Date(now.getTime() + h * 60 * 60 * 1000).toISOString();
 }

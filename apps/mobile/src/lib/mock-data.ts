@@ -25,7 +25,9 @@ const MOCK_LOCATION_KOFU: Location = {
   lng: 138.5686,
 };
 
-const now = new Date();
+// Fixed reference point (not `new Date()`) so this module produces identical
+// output during Expo's static prerender and on client hydration.
+const now = new Date('2026-08-18T09:00:00+09:00');
 function hoursFromNow(h: number) {
   return new Date(now.getTime() + h * 60 * 60 * 1000).toISOString();
 }

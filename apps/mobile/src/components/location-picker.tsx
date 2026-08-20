@@ -20,12 +20,12 @@ export function LocationPicker({
   const [error, setError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const queryTooShort = !isPlacesApiConfigured || query.trim().length < 2;
+  const visibleSuggestions = queryTooShort ? [] : suggestions;
+
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!isPlacesApiConfigured || query.trim().length < 2) {
-      setSuggestions([]);
-      return;
-    }
+    if (queryTooShort) return;
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       setError(null);
@@ -41,7 +41,7 @@ export function LocationPicker({
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query]);
+  }, [query, queryTooShort]);
 
   const handleSelectSuggestion = async (s: PlaceSuggestion) => {
     setLoading(true);
@@ -103,9 +103,9 @@ export function LocationPicker({
       )}
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {suggestions.length > 0 && (
+      {visibleSuggestions.length > 0 && (
         <View style={styles.suggestionList}>
-          {suggestions.map((s) => (
+          {visibleSuggestions.map((s) => (
             <PressableCard key={s.placeId} style={styles.suggestionCard} onPress={() => handleSelectSuggestion(s)}>
               <Text style={styles.suggestionMain}>{s.mainText}</Text>
               {!!s.secondaryText && <Text style={styles.suggestionSecondary}>{s.secondaryText}</Text>}
@@ -114,7 +114,7 @@ export function LocationPicker({
         </View>
       )}
 
-      {suggestions.length === 0 && savedLocations.length > 0 && (
+      {visibleSuggestions.length === 0 && savedLocations.length > 0 && (
         <View style={styles.savedSection}>
           <Text style={styles.savedLabel}>最近使った場所</Text>
           <View style={styles.savedGrid}>
