@@ -1,15 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { calculatePrice } from '@companion-dispatch/pricing';
 import { useReservationStore } from '@/lib/reservation-store';
 import { isValidEmail } from '@/lib/profile';
+import { isStripeConfigured, type CardPaymentHandle } from '@/lib/stripe';
 import type { BookingType, Location, PaymentMethod } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
 import { Card, GoldButton, SecondaryButton, palette } from '@/components/ui';
 import { GlamourStrip, TrustBadges } from '@/components/glamour';
 import { CalendarPicker, TimeSlotPicker } from '@/components/calendar';
 import { LocationPicker } from '@/components/location-picker';
+import { CardPaymentField } from '@/components/card-payment-field';
 
 const STEP_LABELS = ['ご予約内容', 'お支払い・確認'];
 
@@ -30,6 +32,10 @@ export default function BookingScreen() {
   const [email, setEmail] = useState(contactEmail);
   const [emailTouched, setEmailTouched] = useState(false);
   const [lastSeenContactEmail, setLastSeenContactEmail] = useState(contactEmail);
+  const [cardComplete, setCardComplete] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const cardFieldRef = useRef<CardPaymentHandle>(null);
 
   // contactEmail loads asynchronously from storage after mount; sync the
   // field once it arrives, but never once the user has started typing.
@@ -50,17 +56,18 @@ export default function BookingScreen() {
   const requestedDatetime = bookingType === 'now' ? new Date().toISOString() : scheduledIso;
 
   const canProceedStep0 = location !== null && (bookingType === 'now' || scheduledIso !== null);
-  const canSubmit = isValidEmail(email);
+  const cardPaymentUnavailable = paymentMethod === 'card' && !isStripeConfigured;
+  const needsCardEntry = paymentMethod === 'card' && isStripeConfigured;
+  const canSubmit =
+    isValidEmail(email) && !paying && !cardPaymentUnavailable && (!needsCardEntry || cardComplete);
 
   const handleSelectLocation = (loc: Location) => {
     setLocation(loc);
     recordLocationUsage(loc);
   };
 
-  const handleSubmit = () => {
-    if (!location || !requestedDatetime || !canSubmit) return;
-    const trimmedEmail = email.trim();
-    if (trimmedEmail !== contactEmail) updateContactEmail(trimmedEmail);
+  const finalizeReservation = (trimmedEmail: string) => {
+    if (!location || !requestedDatetime) return;
     const reservation = createReservation({
       location,
       bookingType,
@@ -73,6 +80,30 @@ export default function BookingScreen() {
       contactEmail: trimmedEmail,
     });
     router.replace(`/reservation/${reservation.id}`);
+  };
+
+  const handleSubmit = async () => {
+    if (!location || !requestedDatetime || !canSubmit) return;
+    const trimmedEmail = email.trim();
+    if (trimmedEmail !== contactEmail) updateContactEmail(trimmedEmail);
+
+    if (paymentMethod === 'cash') {
+      finalizeReservation(trimmedEmail);
+      return;
+    }
+
+    setPaying(true);
+    setPaymentError(null);
+    try {
+      const result = await cardFieldRef.current?.confirmPayment();
+      if (!result?.success) {
+        setPaymentError(result?.error ?? '決済に失敗しました。カード情報をご確認のうえ再度お試しください。');
+        return;
+      }
+      finalizeReservation(trimmedEmail);
+    } finally {
+      setPaying(false);
+    }
   };
 
   return (
@@ -173,6 +204,20 @@ export default function BookingScreen() {
             />
           </View>
 
+          {paymentMethod === 'card' && (
+            <>
+              <Text style={styles.fieldLabel}>カード情報</Text>
+              <CardPaymentField
+                ref={cardFieldRef}
+                amountYen={price.totalPrice}
+                email={email}
+                description={`URARA予約 ${location?.name ?? ''}`}
+                onCardCompleteChange={setCardComplete}
+              />
+              {paymentError && <Text style={styles.emailError}>{paymentError}</Text>}
+            </>
+          )}
+
           <Text style={styles.fieldLabel}>ご要望・連絡事項</Text>
           <TextInput
             style={styles.textArea}
@@ -203,7 +248,13 @@ export default function BookingScreen() {
       <View style={styles.nav}>
         {step > 0 && <SecondaryButton label="戻る" onPress={() => setStep((s) => s - 1)} />}
         {step < 1 && <GoldButton label="次へ" disabled={!canProceedStep0} onPress={() => setStep((s) => s + 1)} />}
-        {step === 1 && <GoldButton label="この内容で申し込む" disabled={!canSubmit} onPress={handleSubmit} />}
+        {step === 1 && (
+          <GoldButton
+            label={paying ? '決済処理中...' : 'この内容で申し込む'}
+            disabled={!canSubmit}
+            onPress={handleSubmit}
+          />
+        )}
       </View>
     </ScrollView>
   );
