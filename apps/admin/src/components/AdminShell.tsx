@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 const NAV_ITEMS = [
@@ -22,6 +22,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   const currentLabel = NAV_ITEMS.find((item) => item.href === pathname)?.label ?? "管理画面";
+
+  // The login page renders its own centered layout — no nav shell to leak
+  // before the visitor is authenticated.
+  if (pathname === "/login") return <>{children}</>;
 
   return (
     <div className="flex min-h-full flex-col md:flex-row">
@@ -66,13 +70,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/logout", { method: "POST" });
+    onNavigate?.();
+    router.replace("/login");
+    router.refresh();
+  };
+
   return (
     <>
       <div className="border-b border-neutral-200 px-4 py-5">
         <p className="text-sm font-semibold text-neutral-500">コンパニオン派遣</p>
         <p className="text-base font-bold">管理画面</p>
       </div>
-      <nav className="flex flex-col gap-1 p-3">
+      <nav className="flex flex-1 flex-col gap-1 p-3">
         {NAV_ITEMS.map((item) => (
           <Link
             key={item.href}
@@ -84,6 +97,15 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         ))}
       </nav>
+      <div className="border-t border-neutral-200 p-3">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full rounded-md px-3 py-2 text-left text-sm font-medium text-neutral-500 hover:bg-neutral-100"
+        >
+          ログアウト
+        </button>
+      </div>
     </>
   );
 }
