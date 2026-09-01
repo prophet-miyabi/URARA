@@ -1,14 +1,20 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useReservationStore } from '@/lib/reservation-store';
 import { isValidEmail } from '@/lib/profile';
-import { Badge, Card, SecondaryButton, palette } from '@/components/ui';
+import { STATUS_LABEL } from '@/lib/types';
+import { formatDateTimeJST } from '@/lib/format';
+import { Badge, Card, PressableCard, SecondaryButton, palette } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
 
 export default function AccountScreen() {
-  const { contactEmail, updateContactEmail } = useReservationStore();
+  const router = useRouter();
+  const { contactEmail, updateContactEmail, reservations } = useReservationStore();
   const [draft, setDraft] = useState(contactEmail);
   const [lastSeenEmail, setLastSeenEmail] = useState(contactEmail);
+
+  const activeReservation = reservations.find((r) => r.status !== 'completed' && r.status !== 'cancelled');
 
   // contactEmail loads asynchronously from storage after mount; sync the draft
   // once it arrives without clobbering anything the user has already typed.
@@ -28,6 +34,18 @@ export default function AccountScreen() {
         <Text style={styles.name}>山本 太郎 様</Text>
         <Text style={styles.phone}>080-1234-5678</Text>
       </Card>
+
+      {activeReservation && (
+        <PressableCard style={styles.activeCard} onPress={() => router.push(`/reservation/${activeReservation.id}`)}>
+          <View style={styles.activeCardHeader}>
+            <Text style={styles.activeCardTitle}>進行中の予約</Text>
+            <Badge label={STATUS_LABEL[activeReservation.status]} tone="warning" />
+          </View>
+          <Text style={styles.activeCardBody}>
+            {formatDateTimeJST(activeReservation.requestedDatetime)} ・ 女の子{activeReservation.companionCount}名
+          </Text>
+        </PressableCard>
+      )}
 
       <Card style={styles.card}>
         <Text style={styles.rowLabel}>メールアドレス</Text>
@@ -80,6 +98,10 @@ const styles = StyleSheet.create({
   card: { gap: 8 },
   name: { fontSize: 18, fontWeight: '800', color: palette.text },
   phone: { fontSize: 13, color: palette.textMuted },
+  activeCard: { gap: 6 },
+  activeCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  activeCardTitle: { fontSize: 14, fontWeight: '700', color: palette.text },
+  activeCardBody: { fontSize: 13, color: palette.textMuted },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
   rowLabel: { fontSize: 14, fontWeight: '600', color: palette.text },
   rowValue: { fontSize: 13, color: palette.textMuted, flexShrink: 1, textAlign: 'right' },

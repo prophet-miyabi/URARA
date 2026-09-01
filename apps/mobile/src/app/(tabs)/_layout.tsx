@@ -20,13 +20,13 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: palette.bg,
           borderTopColor: palette.hairline,
-          height: 50 + bottomPadding,
-          paddingTop: 6,
+          height: 66 + bottomPadding,
+          paddingTop: 8,
           paddingBottom: bottomPadding,
         },
         tabBarActiveTintColor: palette.gold,
         tabBarInactiveTintColor: palette.textFaint,
-        tabBarLabelStyle: { fontSize: 10 },
+        tabBarLabelStyle: { fontSize: 10, lineHeight: 13 },
       }}
     >
       <Tabs.Screen

@@ -12,6 +12,7 @@
     "@stripe/react-stripe-js": "^6.8.2",
     "@stripe/stripe-js": "^9.14.0",
     "expo": "~57.0.13",
+    "expo-blur": "~57.0.2",
     "expo-constants": "~57.0.11",
     "expo-device": "~57.0.1",
     "expo-font": "~57.0.1",
