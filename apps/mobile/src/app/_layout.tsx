@@ -32,6 +32,7 @@ export default function RootLayout() {
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="booking/index" options={{ title: '予約する', headerBackTitle: '戻る' }} />
+          <Stack.Screen name="pricing/index" options={{ title: '料金・対応エリア', headerBackTitle: '戻る' }} />
           <Stack.Screen name="reservation/[id]" options={{ title: '予約状況', headerBackTitle: '戻る' }} />
         </Stack>
       </ReservationProvider>

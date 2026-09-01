@@ -169,7 +169,7 @@ export default function HomeScreen() {
               <Text style={styles.navCardText}>キャストを見る ›</Text>
             </Pressable>
 
-            <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/cast')}>
+            <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/pricing')}>
               <View style={styles.navCardIconBox}>
                 <Ionicons name="location" size={32} color={palette.gold} />
               </View>
