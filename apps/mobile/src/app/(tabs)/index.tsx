@@ -3,13 +3,15 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { palette } from '@/components/ui';
 
-// いただいた最高品質のアセットを読み込みます（ロゴは背景を透過済みのPNG）
+// いただいた最高品質のアセットを読み込みます（背景を透過済みのPNG）
 const LOGO_IMAGE = require('../../../assets/2661.png');
 const HERO_IMAGE = require('../../../assets/2746.png');
+const CAST_ICON = require('../../../assets/cast-icon.png');
+const PRICING_ICON = require('../../../assets/pricing-icon.png');
+const GUIDE_ICON = require('../../../assets/guide-icon.png');
 
 const CHROME_GRADIENT_CSS =
   'linear-gradient(180deg, #FDFDFD 0%, #D4D4D4 30%, #8A8A8A 55%, #EAEAEA 75%, #FFFFFF 100%)';
@@ -163,22 +165,22 @@ export default function HomeScreen() {
           {/* --- Bottom Navigation Cards --- */}
           <View style={styles.navCardsRow}>
             <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/cast')}>
-              <View style={styles.navCardIconBox}>
-                <MaterialCommunityIcons name="human-female" size={32} color={palette.gold} />
+              <View style={styles.navCardIconWrap}>
+                <Image source={CAST_ICON} style={styles.navCardIcon} contentFit="contain" />
               </View>
               <Text style={styles.navCardText}>キャストを見る ›</Text>
             </Pressable>
 
             <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/pricing')}>
-              <View style={styles.navCardIconBox}>
-                <Ionicons name="location" size={32} color={palette.gold} />
+              <View style={styles.navCardIconWrap}>
+                <Image source={PRICING_ICON} style={styles.navCardIcon} contentFit="contain" />
               </View>
-              <Text style={styles.navCardText}>料金・対応エリア ›</Text>
+              <Text style={styles.navCardText}>料金・エリア ›</Text>
             </Pressable>
 
             <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/account')}>
-              <View style={styles.navCardIconBox}>
-                <Ionicons name="book" size={32} color={palette.gold} />
+              <View style={styles.navCardIconWrap}>
+                <Image source={GUIDE_ICON} style={styles.navCardIcon} contentFit="contain" />
               </View>
               <Text style={styles.navCardText}>初めての方へ ›</Text>
             </Pressable>
@@ -362,25 +364,28 @@ const styles = StyleSheet.create({
   navCard: {
     flex: 1,
     aspectRatio: 0.85,
-    backgroundColor: 'transparent',
+    backgroundColor: palette.bgElevated,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: palette.cardBorder,
-    padding: 12,
-    justifyContent: 'flex-end',
+    padding: 10,
     alignItems: 'center',
   },
-  navCardIconBox: {
+  navCardIconWrap: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0.8,
+  },
+  navCardIcon: {
+    width: '100%',
+    height: '100%',
   },
   navCardText: {
     color: palette.text,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    marginTop: 8,
+    textAlign: 'center',
+    marginTop: 6,
   },
 });
