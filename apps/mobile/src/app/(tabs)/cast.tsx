@@ -1,30 +1,82 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { MOCK_CAST } from '@/lib/mock-data';
-import { Card, GoldDivider, palette } from '@/components/ui';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Card, GoldButton, GoldDivider, SecondaryButton, palette } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
 
+const BODY_TYPES = ['スレンダー', '普通体型', 'グラマー', 'ぽっちゃり'];
+const PERSONALITIES = ['朗らか', '上品', '社交的', '癒し', '気配り', '華やか'];
+
 export default function CastScreen() {
+  const router = useRouter();
+  const [formOpen, setFormOpen] = useState(false);
+  const [bodyType, setBodyType] = useState<string | null>(null);
+  const [companionCount, setCompanionCount] = useState(1);
+  const [personalities, setPersonalities] = useState<string[]>([]);
+
+  const togglePersonality = (p: string) => {
+    setPersonalities((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]));
+  };
+
+  const handleProceed = () => {
+    const parts: string[] = [];
+    if (bodyType) parts.push(`体型: ${bodyType}`);
+    parts.push(`女の子人数: ${companionCount}名`);
+    if (personalities.length > 0) parts.push(`性格・雰囲気: ${personalities.join('・')}`);
+    const notes = `【ご希望】${parts.join(' / ')}`;
+    router.push({ pathname: '/booking', params: { notes, companionCount: String(companionCount) } });
+  };
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <GlamourStrip title="キャスト紹介" />
+      <GlamourStrip title="キャスト" />
       <Text style={styles.hint}>
-        ご紹介中のキャストの一部です。当日の手配は運営にて調整いたします（このアプリからの指名予約は現在対応しておりません）。
+        個別のキャストのご指名は承っておりません。下のボタンからご希望のイメージをお伝えいただければ、運営が当日ご希望に近いキャストを手配いたします。
       </Text>
       <GoldDivider />
 
-      <View style={styles.grid}>
-        {MOCK_CAST.map((c) => (
-          <Card key={c.id} style={styles.castCard}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarLetter}>{c.nickname.charAt(0)}</Text>
-            </View>
-            <Text style={styles.nickname}>{c.nickname}</Text>
-            <Text style={styles.tone}>{c.tone}</Text>
-            <Text style={styles.tagline}>{c.tagline}</Text>
-          </Card>
-        ))}
-      </View>
+      {!formOpen ? (
+        <GoldButton label="キャストを呼ぶ" onPress={() => setFormOpen(true)} />
+      ) : (
+        <Card style={styles.formCard}>
+          <Text style={styles.sectionTitle}>ご希望をお聞かせください</Text>
+
+          <Text style={styles.fieldLabel}>体型</Text>
+          <View style={styles.chipRow}>
+            {BODY_TYPES.map((b) => (
+              <Chip key={b} label={b} selected={bodyType === b} onPress={() => setBodyType(bodyType === b ? null : b)} />
+            ))}
+          </View>
+
+          <Text style={styles.fieldLabel}>女の子の人数</Text>
+          <View style={styles.stepperControl}>
+            <SecondaryButton label="−" onPress={() => setCompanionCount((v) => Math.max(1, v - 1))} />
+            <Text style={styles.stepperValue}>{companionCount}名</Text>
+            <SecondaryButton label="＋" onPress={() => setCompanionCount((v) => v + 1)} />
+          </View>
+
+          <Text style={styles.fieldLabel}>性格・雰囲気（複数選択可）</Text>
+          <View style={styles.chipRow}>
+            {PERSONALITIES.map((p) => (
+              <Chip key={p} label={p} selected={personalities.includes(p)} onPress={() => togglePersonality(p)} />
+            ))}
+          </View>
+
+          <GoldButton label="この内容で予約に進む" onPress={handleProceed} />
+          <Text style={styles.formNote}>
+            ※ あくまでご希望としてお伺いするものです。必ずしもご希望通りのキャストになるとは限りません。
+          </Text>
+        </Card>
+      )}
     </ScrollView>
+  );
+}
+
+function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  return (
+    <Pressable style={[styles.chip, selected && styles.chipSelected]} onPress={onPress}>
+      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -32,20 +84,22 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bg },
   content: { padding: 20, gap: 14 },
   hint: { color: palette.textMuted, fontSize: 12, lineHeight: 18 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 4 },
-  castCard: { width: '47%', alignItems: 'center', gap: 4, paddingVertical: 20 },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 1.5,
-    borderColor: palette.gold,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
+  formCard: { gap: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: '800', color: palette.text },
+  fieldLabel: { fontSize: 13, fontWeight: '700', color: palette.text, marginTop: 6 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: palette.bgElevated,
   },
-  avatarLetter: { color: palette.gold, fontFamily: 'PlayfairDisplay_700Bold', fontSize: 22 },
-  nickname: { color: palette.text, fontSize: 15, fontWeight: '700' },
-  tone: { color: palette.goldBright, fontSize: 11, fontWeight: '600' },
-  tagline: { color: palette.textMuted, fontSize: 11, textAlign: 'center', marginTop: 2 },
+  chipSelected: { borderColor: palette.gold, backgroundColor: palette.gold },
+  chipText: { color: palette.text, fontSize: 13, fontWeight: '600' },
+  chipTextSelected: { color: palette.onGold, fontWeight: '800' },
+  stepperControl: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  stepperValue: { fontSize: 16, fontWeight: '700', minWidth: 48, textAlign: 'center', color: palette.text },
+  formNote: { fontSize: 11, color: palette.textFaint, lineHeight: 16, marginTop: 4 },
 });

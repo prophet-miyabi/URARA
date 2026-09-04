@@ -1,13 +1,4 @@
-import type { CastProfile, Location, Reservation } from './types';
-
-export const MOCK_CAST: CastProfile[] = [
-  { id: 'ca1', nickname: 'あゆ', tagline: '明るい会話で場を盛り上げます', tone: '朗らか' },
-  { id: 'ca2', nickname: 'れいな', tagline: '落ち着いた接客が得意です', tone: '上品' },
-  { id: 'ca3', nickname: 'みゆ', tagline: 'お酒の席が大好きです', tone: '社交的' },
-  { id: 'ca4', nickname: 'さくら', tagline: '聞き上手で癒し系です', tone: '癒し' },
-  { id: 'ca5', nickname: 'ののか', tagline: '初対面でも安心してお任せください', tone: '気配り' },
-  { id: 'ca6', nickname: 'まい', tagline: '宴会を華やかに彩ります', tone: '華やか' },
-];
+import type { Location, Reservation } from './types';
 
 const MOCK_LOCATION_ISHIWA: Location = {
   placeId: 'mock-place-ishiwa',

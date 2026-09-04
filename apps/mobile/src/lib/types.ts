@@ -21,13 +21,6 @@ export interface Location {
   lng: number;
 }
 
-export interface CastProfile {
-  id: string;
-  nickname: string;
-  tagline: string;
-  tone: string;
-}
-
 export interface Reservation {
   id: string;
   location: Location;

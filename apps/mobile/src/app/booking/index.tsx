@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { calculatePrice } from '@companion-dispatch/pricing';
 import { useReservationStore } from '@/lib/reservation-store';
 import { isValidEmail } from '@/lib/profile';
@@ -17,6 +17,9 @@ const STEP_LABELS = ['ご予約内容', 'お支払い・確認'];
 
 export default function BookingScreen() {
   const router = useRouter();
+  // キャスト画面の希望フォームから遷移してきた場合、希望内容を初期値として
+  // 引き継ぐ（人数・要望欄）。通常の「今すぐ予約する」経由では両方とも未指定。
+  const params = useLocalSearchParams<{ notes?: string; companionCount?: string }>();
   const { savedLocations, recordLocationUsage, contactEmail, updateContactEmail, createReservation } =
     useReservationStore();
   const [step, setStep] = useState(0);
@@ -26,9 +29,12 @@ export default function BookingScreen() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const [guestCount, setGuestCount] = useState(4);
-  const [companionCount, setCompanionCount] = useState(1);
+  const [companionCount, setCompanionCount] = useState(() => {
+    const n = Number(params.companionCount);
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(() => params.notes ?? '');
   const [email, setEmail] = useState(contactEmail);
   const [emailTouched, setEmailTouched] = useState(false);
   const [lastSeenContactEmail, setLastSeenContactEmail] = useState(contactEmail);
