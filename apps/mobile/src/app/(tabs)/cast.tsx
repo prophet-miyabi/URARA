@@ -41,18 +41,18 @@ export default function CastScreen() {
         <Card style={styles.formCard}>
           <Text style={styles.sectionTitle}>ご希望をお聞かせください</Text>
 
-          <Text style={styles.fieldLabel}>体型</Text>
-          <View style={styles.chipRow}>
-            {BODY_TYPES.map((b) => (
-              <Chip key={b} label={b} selected={bodyType === b} onPress={() => setBodyType(bodyType === b ? null : b)} />
-            ))}
-          </View>
-
           <Text style={styles.fieldLabel}>女の子の人数</Text>
           <View style={styles.stepperControl}>
             <SecondaryButton label="−" onPress={() => setCompanionCount((v) => Math.max(1, v - 1))} />
             <Text style={styles.stepperValue}>{companionCount}名</Text>
             <SecondaryButton label="＋" onPress={() => setCompanionCount((v) => v + 1)} />
+          </View>
+
+          <Text style={styles.fieldLabel}>体型</Text>
+          <View style={styles.chipRow}>
+            {BODY_TYPES.map((b) => (
+              <Chip key={b} label={b} selected={bodyType === b} onPress={() => setBodyType(bodyType === b ? null : b)} />
+            ))}
           </View>
 
           <Text style={styles.fieldLabel}>性格・雰囲気（複数選択可）</Text>
