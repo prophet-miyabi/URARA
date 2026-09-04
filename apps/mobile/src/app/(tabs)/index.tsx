@@ -9,9 +9,12 @@ import { palette } from '@/components/ui';
 // いただいた最高品質のアセットを読み込みます（背景を透過済みのPNG）
 const LOGO_IMAGE = require('../../../assets/2661.png');
 const HERO_IMAGE = require('../../../assets/2746.png');
+// アイコン+文字が一体になった完成イメージ。「キャストを見る」のみ元画像に
+// 背景のぼかし影が入っていて綺麗に透過抽出できなかったため、そちらだけは
+// 単体アイコン（透過済み）+ 別レイヤーの金文字で構成する。
 const CAST_ICON = require('../../../assets/cast-icon.png');
-const PRICING_ICON = require('../../../assets/pricing-icon.png');
-const GUIDE_ICON = require('../../../assets/guide-icon.png');
+const PRICING_BUTTON = require('../../../assets/pricing-button.png');
+const GUIDE_BUTTON = require('../../../assets/guide-button.png');
 
 const CHROME_GRADIENT_CSS =
   'linear-gradient(180deg, #FDFDFD 0%, #D4D4D4 30%, #8A8A8A 55%, #EAEAEA 75%, #FFFFFF 100%)';
@@ -168,21 +171,15 @@ export default function HomeScreen() {
               <View style={styles.navCardIconWrap}>
                 <Image source={CAST_ICON} style={styles.navCardIcon} contentFit="contain" />
               </View>
-              <Text style={styles.navCardText}>キャストを見る ›</Text>
+              <Text style={styles.navCardGoldText}>キャストを見る ›</Text>
             </Pressable>
 
             <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/pricing')}>
-              <View style={styles.navCardIconWrap}>
-                <Image source={PRICING_ICON} style={styles.navCardIcon} contentFit="contain" />
-              </View>
-              <Text style={styles.navCardText}>料金・エリア ›</Text>
+              <Image source={PRICING_BUTTON} style={styles.navCardButtonImage} contentFit="contain" />
             </Pressable>
 
             <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/account')}>
-              <View style={styles.navCardIconWrap}>
-                <Image source={GUIDE_ICON} style={styles.navCardIcon} contentFit="contain" />
-              </View>
-              <Text style={styles.navCardText}>初めての方へ ›</Text>
+              <Image source={GUIDE_BUTTON} style={styles.navCardButtonImage} contentFit="contain" />
             </Pressable>
           </View>
         </View>
@@ -381,10 +378,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  navCardText: {
-    color: palette.text,
+  navCardButtonImage: {
+    flex: 1,
+    width: '100%',
+  },
+  navCardGoldText: {
+    color: palette.gold,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     textAlign: 'center',
     marginTop: 6,
   },
