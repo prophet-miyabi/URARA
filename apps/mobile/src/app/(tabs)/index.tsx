@@ -9,10 +9,10 @@ import { palette } from '@/components/ui';
 // いただいた最高品質のアセットを読み込みます（背景を透過済みのPNG）
 const LOGO_IMAGE = require('../../../assets/2661.png');
 const HERO_IMAGE = require('../../../assets/2746.png');
-// アイコン+文字が一体になった完成イメージ。「キャストを見る」のみ元画像に
-// 背景のぼかし影が入っていて綺麗に透過抽出できなかったため、そちらだけは
-// 単体アイコン（透過済み）+ 別レイヤーの金文字で構成する。
-const CAST_ICON = require('../../../assets/cast-icon.png');
+// アイコン+文字が一体になった完成イメージ。「キャストを見る」だけは元画像に
+// 背景のぼかし影が入っていて自動抽出では綺麗にならなかったため、単体アイコン
+// （透過済み）に金文字を合成し直して同じ構成の1枚画像にしてある。
+const CAST_BUTTON = require('../../../assets/cast-button.png');
 const PRICING_BUTTON = require('../../../assets/pricing-button.png');
 const GUIDE_BUTTON = require('../../../assets/guide-button.png');
 
@@ -168,10 +168,7 @@ export default function HomeScreen() {
           {/* --- Bottom Navigation Cards --- */}
           <View style={styles.navCardsRow}>
             <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/cast')}>
-              <View style={styles.navCardIconWrap}>
-                <Image source={CAST_ICON} style={styles.navCardIcon} contentFit="contain" />
-              </View>
-              <Text style={styles.navCardGoldText}>キャストを見る ›</Text>
+              <Image source={CAST_BUTTON} style={styles.navCardButtonImage} contentFit="contain" />
             </Pressable>
 
             <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/pricing')}>
@@ -368,25 +365,8 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
   },
-  navCardIconWrap: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navCardIcon: {
-    width: '100%',
-    height: '100%',
-  },
   navCardButtonImage: {
     flex: 1,
     width: '100%',
-  },
-  navCardGoldText: {
-    color: palette.gold,
-    fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginTop: 6,
   },
 });
