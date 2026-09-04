@@ -3,7 +3,14 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useFonts, PlayfairDisplay_600SemiBold, PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
+// バレルの index.js から読み込むと、実際に使う2ウェイトだけでなく
+// パッケージ内の全12ウェイト（Regular〜Black×Italic、計2MB超）が
+// require() されてWebバンドルに含まれてしまうため、各ウェイトを
+// 個別のサブパスから直接読み込んでいる（同じ理由で@expo/vector-iconsも
+// 各アイコンセットを直接インポートしている）。
+import { useFonts } from '@expo-google-fonts/playfair-display/useFonts';
+import { PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display/600SemiBold';
+import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display/700Bold';
 import { ReservationProvider } from '@/lib/reservation-store';
 import { palette } from '@/components/ui';
 

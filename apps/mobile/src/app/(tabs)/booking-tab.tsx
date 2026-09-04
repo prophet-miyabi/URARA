@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useReservationStore } from '@/lib/reservation-store';
 import { STATUS_LABEL, STATUS_STEPS, type ReservationStatus } from '@/lib/types';
 import { formatDateTimeJST } from '@/lib/format';

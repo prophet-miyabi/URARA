@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { calculatePrice, DEFAULT_PRICING_RULES } from '@companion-dispatch/pricing';
 import { formatYen } from '@/lib/format';
 import { Card, GoldButton, SecondaryButton, GoldDivider, palette } from '@/components/ui';

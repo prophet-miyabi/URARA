@@ -6,15 +6,16 @@ import { BlurView } from 'expo-blur';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { palette } from '@/components/ui';
 
-// いただいた最高品質のアセットを読み込みます（背景を透過済みのPNG）
-const LOGO_IMAGE = require('../../../assets/2661.png');
-const HERO_IMAGE = require('../../../assets/2746.png');
+// いただいた最高品質のアセットを読み込みます（背景を透過済み・表示サイズに
+// 合わせてリサイズ＋WebP圧縮したもの。見た目は元のPNG版と同一）。
+const LOGO_IMAGE = require('../../../assets/2661.webp');
+const HERO_IMAGE = require('../../../assets/2746.webp');
 // アイコン+文字が一体になった完成イメージ。「キャストを見る」だけは元画像に
 // 背景のぼかし影が入っていて自動抽出では綺麗にならなかったため、単体アイコン
 // （透過済み）に金文字を合成し直して同じ構成の1枚画像にしてある。
-const CAST_BUTTON = require('../../../assets/cast-button.png');
-const PRICING_BUTTON = require('../../../assets/pricing-button.png');
-const GUIDE_BUTTON = require('../../../assets/guide-button.png');
+const CAST_BUTTON = require('../../../assets/cast-button.webp');
+const PRICING_BUTTON = require('../../../assets/pricing-button.webp');
+const GUIDE_BUTTON = require('../../../assets/guide-button.webp');
 
 const CHROME_GRADIENT_CSS =
   'linear-gradient(180deg, #FDFDFD 0%, #D4D4D4 30%, #8A8A8A 55%, #EAEAEA 75%, #FFFFFF 100%)';

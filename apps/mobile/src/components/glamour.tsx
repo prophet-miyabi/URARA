@@ -1,10 +1,9 @@
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { palette } from './ui';
 
-const HERO_IMAGE = require('../../assets/images/hero-toast.png');
-const STRIP_IMAGE = require('../../assets/images/dinner-toast.png');
+const STRIP_IMAGE = require('../../assets/images/dinner-toast.webp');
 
 const BOKEH_LARGE = [
   { top: '6%', left: '78%', size: 46, opacity: 0.16 },
@@ -60,19 +59,6 @@ export function SilhouetteMotif({
   );
 }
 
-export function GlamourHero({ children }: { children: React.ReactNode }) {
-  return (
-    <ImageBackground source={HERO_IMAGE} style={styles.hero} imageStyle={styles.heroImage}>
-      <LinearGradient
-        colors={['rgba(11,11,12,0.55)', 'rgba(11,11,12,0.75)', 'rgba(11,11,12,0.92)']}
-        style={StyleSheet.absoluteFill}
-      />
-      <BokehField dense />
-      <View style={styles.heroContent}>{children}</View>
-    </ImageBackground>
-  );
-}
-
 export function GlamourStrip({ title }: { title: string }) {
   return (
     <ImageBackground source={STRIP_IMAGE} style={styles.strip} imageStyle={styles.heroImage}>
@@ -104,16 +90,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.goldBright,
   },
   noPointerEvents: { pointerEvents: 'none' },
-  hero: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: palette.cardBorder,
-    overflow: 'hidden',
-    paddingVertical: 28,
-    paddingHorizontal: 20,
-  },
   heroImage: { resizeMode: 'cover' },
-  heroContent: { alignItems: 'center', gap: 10 },
   strip: {
     borderRadius: 16,
     borderWidth: 1,
