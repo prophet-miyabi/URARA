@@ -25,6 +25,7 @@ export async function sendReservationReceivedEmail(reservation: Reservation): Pr
         guestCount: reservation.guestCount,
         companionCount: reservation.companionCount,
         estimatedTotalLabel: formatYen(price.totalPrice),
+        notes: reservation.notes,
       }),
     });
     if (!res.ok) {

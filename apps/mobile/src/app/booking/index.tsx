@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { calculatePrice } from '@companion-dispatch/pricing';
 import { useReservationStore } from '@/lib/reservation-store';
 import { isValidEmail } from '@/lib/profile';
@@ -14,12 +14,11 @@ import { LocationPicker } from '@/components/location-picker';
 import { CardPaymentField } from '@/components/card-payment-field';
 
 const STEP_LABELS = ['ご予約内容', 'お支払い・確認'];
+const BODY_TYPES = ['スレンダー', '普通体型', 'グラマー', 'ぽっちゃり'];
+const PERSONALITIES = ['朗らか', '上品', '社交的', '癒し', '気配り', '華やか'];
 
 export default function BookingScreen() {
   const router = useRouter();
-  // キャスト画面の希望フォームから遷移してきた場合、希望内容を初期値として
-  // 引き継ぐ（人数・要望欄）。通常の「今すぐ予約する」経由では両方とも未指定。
-  const params = useLocalSearchParams<{ notes?: string; companionCount?: string }>();
   const { savedLocations, recordLocationUsage, contactEmail, updateContactEmail, createReservation } =
     useReservationStore();
   const [step, setStep] = useState(0);
@@ -29,12 +28,14 @@ export default function BookingScreen() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const [guestCount, setGuestCount] = useState(4);
-  const [companionCount, setCompanionCount] = useState(() => {
-    const n = Number(params.companionCount);
-    return Number.isFinite(n) && n > 0 ? n : 1;
-  });
+  const [companionCount, setCompanionCount] = useState(1);
+  // キャストの希望: デフォルトは「おまかせ」（ワンタップで完了）。
+  // 「こだわりを伝える」を選んだ時だけ、体型・性格の簡単な選択肢を表示する。
+  const [wantsPreference, setWantsPreference] = useState(false);
+  const [bodyType, setBodyType] = useState<string | null>(null);
+  const [personalities, setPersonalities] = useState<string[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
-  const [notes, setNotes] = useState(() => params.notes ?? '');
+  const [notes, setNotes] = useState('');
   const [email, setEmail] = useState(contactEmail);
   const [emailTouched, setEmailTouched] = useState(false);
   const [lastSeenContactEmail, setLastSeenContactEmail] = useState(contactEmail);
@@ -72,8 +73,18 @@ export default function BookingScreen() {
     recordLocationUsage(loc);
   };
 
+  const togglePersonality = (p: string) => {
+    setPersonalities((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]));
+  };
+
   const finalizeReservation = (trimmedEmail: string) => {
     if (!location || !requestedDatetime) return;
+    const preferenceParts: string[] = [];
+    if (wantsPreference && bodyType) preferenceParts.push(`体型: ${bodyType}`);
+    if (wantsPreference && personalities.length > 0) preferenceParts.push(`性格・雰囲気: ${personalities.join('・')}`);
+    const preferenceSummary = preferenceParts.length > 0 ? `【キャストのご希望】${preferenceParts.join(' / ')}` : null;
+    const combinedNotes = [preferenceSummary, notes.trim()].filter(Boolean).join('\n');
+
     const reservation = createReservation({
       location,
       bookingType,
@@ -82,7 +93,7 @@ export default function BookingScreen() {
       companionCount,
       durationHours: 2,
       paymentMethod,
-      notes,
+      notes: combinedNotes,
       contactEmail: trimmedEmail,
     });
     router.replace(`/reservation/${reservation.id}`);
@@ -167,6 +178,39 @@ export default function BookingScreen() {
 
           <Stepper label="お客様の人数" value={guestCount} min={1} onChange={setGuestCount} />
           <Stepper label="希望する女の子の人数" value={companionCount} min={1} onChange={setCompanionCount} />
+
+          <Text style={[styles.fieldLabel, { marginTop: 8 }]}>キャストのご希望</Text>
+          <View style={styles.toggleRow}>
+            <SecondaryButton
+              label={!wantsPreference ? '✓ おまかせで手配' : 'おまかせで手配'}
+              onPress={() => setWantsPreference(false)}
+            />
+            <SecondaryButton
+              label={wantsPreference ? '✓ こだわりを伝える' : 'こだわりを伝える'}
+              onPress={() => setWantsPreference(true)}
+            />
+          </View>
+
+          {wantsPreference && (
+            <View style={styles.preferenceBox}>
+              <Text style={styles.fieldLabel}>体型</Text>
+              <View style={styles.chipRow}>
+                {BODY_TYPES.map((b) => (
+                  <Chip key={b} label={b} selected={bodyType === b} onPress={() => setBodyType(bodyType === b ? null : b)} />
+                ))}
+              </View>
+
+              <Text style={styles.fieldLabel}>性格・雰囲気（複数選択可）</Text>
+              <View style={styles.chipRow}>
+                {PERSONALITIES.map((p) => (
+                  <Chip key={p} label={p} selected={personalities.includes(p)} onPress={() => togglePersonality(p)} />
+                ))}
+              </View>
+              <Text style={styles.formNote}>
+                ※ あくまでご希望としてお伺いするものです。必ずしもご希望通りのキャストになるとは限りません。
+              </Text>
+            </View>
+          )}
 
           <Card style={styles.priceCard}>
             <Text style={styles.priceLabel}>料金目安（基本2時間）</Text>
@@ -266,6 +310,14 @@ export default function BookingScreen() {
   );
 }
 
+function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  return (
+    <Pressable style={[styles.chip, selected && styles.chipSelected]} onPress={onPress}>
+      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 function Stepper({
   label,
   value,
@@ -316,6 +368,20 @@ const styles = StyleSheet.create({
   stepperRow: { gap: 6 },
   stepperControl: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   stepperValue: { fontSize: 16, fontWeight: '700', minWidth: 40, textAlign: 'center', color: palette.text },
+  preferenceBox: { gap: 8 },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: palette.card,
+  },
+  chipSelected: { borderColor: palette.gold, backgroundColor: palette.gold },
+  chipText: { color: palette.text, fontSize: 13, fontWeight: '600' },
+  chipTextSelected: { color: palette.onGold, fontWeight: '800' },
+  formNote: { fontSize: 11, color: palette.textFaint, lineHeight: 16 },
   priceCard: { gap: 4, backgroundColor: palette.neutralBg },
   priceLabel: { fontSize: 12, color: palette.textMuted },
   priceValue: { fontSize: 24, fontWeight: '800', color: palette.goldBright },

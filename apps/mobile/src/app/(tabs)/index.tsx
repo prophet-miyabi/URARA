@@ -168,7 +168,7 @@ export default function HomeScreen() {
 
           {/* --- Bottom Navigation Cards --- */}
           <View style={styles.navCardsRow}>
-            <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/cast')}>
+            <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/booking')}>
               <Image source={CAST_BUTTON} style={styles.navCardButtonImage} contentFit="contain" />
             </Pressable>
 

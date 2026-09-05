@@ -34,10 +34,6 @@ export default function TabsLayout() {
         options={{ title: 'ホーム', headerShown: false, tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} /> }}
       />
       <Tabs.Screen
-        name="cast"
-        options={{ title: 'キャスト', tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} /> }}
-      />
-      <Tabs.Screen
         name="booking-tab"
         options={{ title: '予約', tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} /> }}
       />

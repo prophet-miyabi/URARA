@@ -68,7 +68,6 @@ export default function PricingScreen() {
       </Card>
 
       <GoldButton label="この内容で予約する" onPress={() => router.push('/booking')} />
-      <SecondaryButton label="キャストを見る" onPress={() => router.push('/cast')} />
     </ScrollView>
   );
 }
