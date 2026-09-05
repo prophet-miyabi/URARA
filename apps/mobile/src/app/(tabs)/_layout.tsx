@@ -15,7 +15,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerStyle: { backgroundColor: palette.bg },
-        headerTintColor: palette.gold,
+        headerTintColor: palette.silver,
         headerTitleStyle: { color: palette.text },
         tabBarStyle: {
           backgroundColor: palette.bg,
@@ -24,7 +24,7 @@ export default function TabsLayout() {
           paddingTop: 8,
           paddingBottom: bottomPadding,
         },
-        tabBarActiveTintColor: palette.gold,
+        tabBarActiveTintColor: palette.silverBright,
         tabBarInactiveTintColor: palette.textFaint,
         tabBarLabelStyle: { fontSize: 10, lineHeight: 13 },
       }}

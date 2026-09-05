@@ -52,11 +52,11 @@ const SUPPORT_PHONE = '055-000-1234';
 interface AnimatedButtonProps {
   label: string;
   onPress: () => void;
-  variant?: 'gold' | 'white';
+  variant?: 'silver' | 'white';
   icon?: string;
 }
 
-function AnimatedButton({ label, onPress, variant = 'gold', icon }: AnimatedButtonProps) {
+function AnimatedButton({ label, onPress, variant = 'silver', icon }: AnimatedButtonProps) {
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -75,14 +75,14 @@ function AnimatedButton({ label, onPress, variant = 'gold', icon }: AnimatedButt
     scale.value = withSpring(1, { damping: 12, stiffness: 300 });
   };
 
-  const isGold = variant === 'gold';
+  const isSilver = variant === 'silver';
 
   return (
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} style={styles.buttonWrapper}>
-      <Animated.View style={[styles.buttonBase, isGold ? null : styles.buttonWhite, animatedStyle]}>
-        {isGold && (
+      <Animated.View style={[styles.buttonBase, isSilver ? null : styles.buttonWhite, animatedStyle]}>
+        {isSilver && (
           <LinearGradient
-            colors={[palette.goldBright, palette.gold, palette.goldDeep]}
+            colors={[palette.silverBright, palette.silver, palette.silverDeep]}
             locations={[0, 0.5, 1]}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
@@ -90,9 +90,9 @@ function AnimatedButton({ label, onPress, variant = 'gold', icon }: AnimatedButt
           />
         )}
         <View style={styles.buttonContent}>
-          {icon && <Text style={[styles.buttonIcon, { color: isGold ? palette.onGold : palette.bg }]}>{icon}</Text>}
-          <Text style={[styles.buttonText, { color: isGold ? palette.onGold : palette.bg }]}>{label}</Text>
-          <Text style={[styles.buttonChevron, { color: isGold ? palette.onGold : palette.bg }]}>›</Text>
+          {icon && <Text style={[styles.buttonIcon, { color: isSilver ? palette.onSilver : palette.bg }]}>{icon}</Text>}
+          <Text style={[styles.buttonText, { color: isSilver ? palette.onSilver : palette.bg }]}>{label}</Text>
+          <Text style={[styles.buttonChevron, { color: isSilver ? palette.onSilver : palette.bg }]}>›</Text>
         </View>
       </Animated.View>
     </Pressable>
@@ -118,7 +118,7 @@ export default function HomeScreen() {
 
             {/* 上部（ロゴ周り）と下部（コンテンツへのトランジション）のグラデーション暗幕 */}
             <LinearGradient
-              colors={['rgba(11,11,12,0.8)', 'rgba(11,11,12,0)', 'rgba(11,11,12,0.6)', '#0B0B0C']}
+              colors={['rgba(5,5,5,0.8)', 'rgba(5,5,5,0)', 'rgba(5,5,5,0.6)', '#050505']}
               locations={[0, 0.3, 0.7, 1]}
               style={StyleSheet.absoluteFill}
             />
@@ -154,7 +154,7 @@ export default function HomeScreen() {
               </Text>
 
               <View style={styles.actionGroup}>
-                <AnimatedButton icon="🗓" label="今すぐ予約する" onPress={() => router.push('/booking')} variant="gold" />
+                <AnimatedButton icon="🗓" label="今すぐ予約する" onPress={() => router.push('/booking')} variant="silver" />
                 <AnimatedButton
                   label="電話で相談"
                   onPress={() => Linking.openURL(`tel:${SUPPORT_PHONE.replace(/-/g, '')}`)}
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     borderRadius: 130,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(216, 184, 114, 0.3)',
+    borderColor: 'rgba(224, 224, 224, 0.3)',
   },
   brandLogo: {
     width: '100%',
@@ -251,17 +251,17 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(216, 184, 114, 0.5)',
+    backgroundColor: 'rgba(224, 224, 224, 0.5)',
   },
   dividerOrnaments: {
-    color: palette.gold,
+    color: palette.silver,
     fontSize: 16,
     marginHorizontal: 12,
   },
   catchCopy: {
     fontFamily: serifFont,
     fontSize: 22,
-    color: palette.goldBright,
+    color: palette.silverBright,
     fontWeight: '600',
     letterSpacing: 2,
     marginBottom: 12,
@@ -280,9 +280,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(216, 184, 114, 0.3)',
+    borderColor: 'rgba(224, 224, 224, 0.3)',
     overflow: 'hidden',
-    backgroundColor: Platform.OS === 'android' ? 'rgba(27, 26, 24, 0.95)' : 'rgba(27, 26, 24, 0.6)',
+    backgroundColor: Platform.OS === 'android' ? 'rgba(18, 18, 18, 0.95)' : 'rgba(18, 18, 18, 0.6)',
   },
   priceRow: {
     textAlign: 'center',
@@ -296,14 +296,14 @@ const styles = StyleSheet.create({
   },
   priceText: {
     fontFamily: serifFont,
-    color: palette.goldBright,
+    color: palette.silverBright,
     fontSize: 20,
     fontWeight: '400',
     letterSpacing: 0.5,
   },
   priceUnit: {
     fontSize: 11,
-    color: palette.gold,
+    color: palette.silver,
   },
   actionGroup: {
     gap: 16,

@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   stepperRow: { flexDirection: 'row', width: '100%' },
   stepperItem: { flex: 1, alignItems: 'center', gap: 4 },
   stepDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: palette.neutralBg },
-  stepDotActive: { backgroundColor: palette.gold },
+  stepDotActive: { backgroundColor: palette.silver },
   stepLabel: { fontSize: 10, color: palette.textMuted, textAlign: 'center' },
   stepLabelActive: { color: palette.text, fontWeight: '700' },
   stageMessage: { color: palette.textMuted, fontSize: 12, textAlign: 'center', marginTop: 12, lineHeight: 18 },
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   rowLabel: { fontSize: 13, color: palette.textMuted },
   rowValue: { fontSize: 13, fontWeight: '600', color: palette.text },
-  rowValueBold: { fontSize: 16, fontWeight: '800', color: palette.goldBright },
+  rowValueBold: { fontSize: 16, fontWeight: '800', color: palette.silverBright },
   divider: { height: 1, backgroundColor: palette.cardBorder, marginVertical: 2 },
   cancelNote: { fontSize: 12, color: palette.textMuted, lineHeight: 18 },
 });

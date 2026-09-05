@@ -1,27 +1,25 @@
 import { Pressable, StyleSheet, Text, View, type ViewProps } from 'react-native';
 
 export const palette = {
-  bg: '#0B0B0C',
-  bgElevated: '#171716',
-  card: '#1B1A18',
-  cardBorder: '#3A3427',
-  hairline: '#2A2723',
-  text: '#F3EEE3',
-  textMuted: '#B9AF9C',
-  textFaint: '#7C7568',
-  gold: '#D8B872',
-  goldBright: '#F3DDA0',
-  goldDeep: '#A7822F',
-  cream: '#F3EEE3',
-  onGold: '#1A1509',
-  accentRed: '#B5231A',
+  bg: '#050505',
+  bgElevated: '#121212',
+  card: '#121212',
+  cardBorder: '#2A2A2A',
+  hairline: '#232323',
+  text: '#F5F5F7',
+  textMuted: '#8E8E93',
+  textFaint: '#6C6C70',
+  silver: '#E0E0E0',
+  silverBright: '#FFFFFF',
+  silverDeep: '#9E9E9E',
+  onSilver: '#000000',
   success: '#7CB88B',
-  successBg: '#1B2A1F',
-  warning: '#D8B872',
-  warningBg: '#2A2410',
+  successBg: '#16241C',
+  warning: '#D0D0D5',
+  warningBg: '#242424',
   danger: '#D97F72',
   dangerBg: '#2A1815',
-  neutralBg: '#201F1C',
+  neutralBg: '#1C1C1E',
 };
 
 export function Card({ style, ...rest }: ViewProps) {
@@ -46,7 +44,7 @@ export function PressableCard({
   );
 }
 
-export function GoldButton({
+export function PlatinumButton({
   label,
   onPress,
   disabled,
@@ -61,41 +59,17 @@ export function GoldButton({
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed }) => [styles.goldButton, { opacity: disabled ? 0.35 : pressed ? 0.85 : 1 }]}
+      style={({ pressed }) => [styles.platinumButton, { opacity: disabled ? 0.35 : pressed ? 0.85 : 1 }]}
     >
       {icon}
-      <Text style={styles.goldButtonLabel}>{label}</Text>
+      <Text style={styles.platinumButtonLabel}>{label}</Text>
       <Text style={styles.chevron}>›</Text>
     </Pressable>
   );
 }
 
-export function CreamButton({
-  label,
-  onPress,
-  disabled,
-  icon,
-}: {
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      style={({ pressed }) => [styles.creamButton, { opacity: disabled ? 0.35 : pressed ? 0.8 : 1 }]}
-    >
-      {icon}
-      <Text style={styles.creamButtonLabel}>{label}</Text>
-      <Text style={[styles.chevron, { color: palette.onGold }]}>›</Text>
-    </Pressable>
-  );
-}
-
 // Legacy aliases kept for screens not yet fully re-themed.
-export const PrimaryButton = GoldButton;
+export const PrimaryButton = PlatinumButton;
 export const SecondaryButton = ({
   label,
   onPress,
@@ -124,7 +98,7 @@ export function Badge({ label, tone = 'neutral' }: { label: string; tone?: 'neut
   );
 }
 
-export function GoldDivider() {
+export function PlatinumDivider() {
   return (
     <View style={styles.dividerRow}>
       <View style={styles.dividerLine} />
@@ -145,37 +119,23 @@ const styles = StyleSheet.create({
   cardPressed: {
     opacity: 0.6,
   },
-  goldButton: {
+  platinumButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     borderRadius: 999,
     paddingVertical: 16,
-    backgroundColor: palette.gold,
+    backgroundColor: palette.silver,
   },
-  goldButtonLabel: {
-    color: palette.onGold,
+  platinumButtonLabel: {
+    color: palette.onSilver,
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
-  creamButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderRadius: 999,
-    paddingVertical: 15,
-    backgroundColor: palette.cream,
-  },
-  creamButtonLabel: {
-    color: palette.onGold,
-    fontSize: 15,
-    fontWeight: '700',
-  },
   chevron: {
-    color: palette.onGold,
+    color: palette.onSilver,
     fontSize: 18,
     fontWeight: '700',
     marginLeft: 2,
@@ -205,5 +165,5 @@ const styles = StyleSheet.create({
   },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   dividerLine: { flex: 1, height: 1, backgroundColor: palette.cardBorder },
-  dividerDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: palette.gold },
+  dividerDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: palette.silver },
 });

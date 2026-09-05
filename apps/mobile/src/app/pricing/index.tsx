@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { calculatePrice, DEFAULT_PRICING_RULES } from '@companion-dispatch/pricing';
 import { formatYen } from '@/lib/format';
-import { Card, GoldButton, SecondaryButton, GoldDivider, palette } from '@/components/ui';
+import { Card, PlatinumButton, SecondaryButton, PlatinumDivider, palette } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
 
 const COVERAGE_AREAS = ['甲府市', '笛吹市（石和温泉エリア）', '中巨摩郡昭和町'];
@@ -26,7 +26,7 @@ export default function PricingScreen() {
         <View style={styles.areaList}>
           {COVERAGE_AREAS.map((area) => (
             <View key={area} style={styles.areaChip}>
-              <Ionicons name="location" size={14} color={palette.gold} />
+              <Ionicons name="location" size={14} color={palette.silver} />
               <Text style={styles.areaChipText}>{area}</Text>
             </View>
           ))}
@@ -40,7 +40,7 @@ export default function PricingScreen() {
         <Text style={styles.sectionTitle}>料金シミュレーション</Text>
         <Text style={styles.sectionHint}>女の子の人数・ご利用時間を選ぶと、目安の料金が表示されます。</Text>
 
-        <GoldDivider />
+        <PlatinumDivider />
 
         <Stepper
           label="女の子の人数"
@@ -67,7 +67,7 @@ export default function PricingScreen() {
         <Text style={styles.sectionNote}>※ 出張料は含まれておりません。場所確定後に別途加算されます。</Text>
       </Card>
 
-      <GoldButton label="この内容で予約する" onPress={() => router.push('/booking')} />
+      <PlatinumButton label="この内容で予約する" onPress={() => router.push('/booking')} />
     </ScrollView>
   );
 }
@@ -137,6 +137,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   rowLabel: { fontSize: 13, color: palette.textMuted, flexShrink: 1 },
   rowValue: { fontSize: 13, fontWeight: '600', color: palette.text },
-  rowValueBold: { fontSize: 18, fontWeight: '800', color: palette.goldBright },
+  rowValueBold: { fontSize: 18, fontWeight: '800', color: palette.silverBright },
   divider: { height: 1, backgroundColor: palette.cardBorder, marginVertical: 2 },
 });

@@ -7,7 +7,7 @@ import { isValidEmail } from '@/lib/profile';
 import { isStripeConfigured, type CardPaymentHandle } from '@/lib/stripe';
 import type { BookingType, Location, PaymentMethod } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
-import { Card, GoldButton, SecondaryButton, palette } from '@/components/ui';
+import { Card, PlatinumButton, SecondaryButton, palette } from '@/components/ui';
 import { GlamourStrip, TrustBadges } from '@/components/glamour';
 import { CalendarPicker, TimeSlotPicker } from '@/components/calendar';
 import { LocationPicker } from '@/components/location-picker';
@@ -297,9 +297,9 @@ export default function BookingScreen() {
 
       <View style={styles.nav}>
         {step > 0 && <SecondaryButton label="戻る" onPress={() => setStep((s) => s - 1)} />}
-        {step < 1 && <GoldButton label="次へ" disabled={!canProceedStep0} onPress={() => setStep((s) => s + 1)} />}
+        {step < 1 && <PlatinumButton label="次へ" disabled={!canProceedStep0} onPress={() => setStep((s) => s + 1)} />}
         {step === 1 && (
-          <GoldButton
+          <PlatinumButton
             label={paying ? '決済処理中...' : 'この内容で申し込む'}
             disabled={!canSubmit}
             onPress={handleSubmit}
@@ -354,9 +354,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  progressDotActive: { backgroundColor: palette.gold },
+  progressDotActive: { backgroundColor: palette.silver },
   progressDotText: { fontSize: 12, fontWeight: '700', color: palette.textMuted },
-  progressDotTextActive: { color: palette.onGold },
+  progressDotTextActive: { color: palette.onSilver },
   progressLabel: { fontSize: 10, color: palette.textMuted, textAlign: 'center' },
   stepBody: { gap: 14 },
   stepTitle: { fontSize: 18, fontWeight: '800', color: palette.text },
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: 13, fontWeight: '700', color: palette.text, marginTop: 4 },
   toggleRow: { flexDirection: 'row', gap: 10 },
   dateTimeSection: { gap: 12 },
-  selectedDateTime: { color: palette.goldBright, fontSize: 13, fontWeight: '700' },
+  selectedDateTime: { color: palette.silverBright, fontSize: 13, fontWeight: '700' },
   stepperRow: { gap: 6 },
   stepperControl: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   stepperValue: { fontSize: 16, fontWeight: '700', minWidth: 40, textAlign: 'center', color: palette.text },
@@ -378,13 +378,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     backgroundColor: palette.card,
   },
-  chipSelected: { borderColor: palette.gold, backgroundColor: palette.gold },
+  chipSelected: { borderColor: palette.silver, backgroundColor: palette.silver },
   chipText: { color: palette.text, fontSize: 13, fontWeight: '600' },
-  chipTextSelected: { color: palette.onGold, fontWeight: '800' },
+  chipTextSelected: { color: palette.onSilver, fontWeight: '800' },
   formNote: { fontSize: 11, color: palette.textFaint, lineHeight: 16 },
   priceCard: { gap: 4, backgroundColor: palette.neutralBg },
   priceLabel: { fontSize: 12, color: palette.textMuted },
-  priceValue: { fontSize: 24, fontWeight: '800', color: palette.goldBright },
+  priceValue: { fontSize: 24, fontWeight: '800', color: palette.silverBright },
   priceNote: { fontSize: 11, color: palette.textMuted },
   textArea: {
     borderWidth: 1,

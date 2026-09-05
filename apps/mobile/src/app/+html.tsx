@@ -13,7 +13,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-        <meta name="theme-color" content="#0B0B0C" />
+        <meta name="theme-color" content="#050505" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
       </head>
@@ -24,7 +24,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
 
 const responsiveBackground = `
 html, body, #root {
-  background-color: #0B0B0C;
+  background-color: #050505;
   height: 100%;
 }
 body {

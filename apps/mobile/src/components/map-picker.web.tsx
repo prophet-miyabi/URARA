@@ -112,7 +112,7 @@ export function MapPicker({
       <View ref={containerRef} style={styles.map} />
       {status === 'loading' && (
         <View style={styles.overlay}>
-          <ActivityIndicator color={palette.gold} />
+          <ActivityIndicator color={palette.silver} />
         </View>
       )}
       {status === 'error' && (
@@ -122,7 +122,7 @@ export function MapPicker({
       )}
       {resolving && (
         <View style={styles.resolvingBadge}>
-          <ActivityIndicator size="small" color={palette.onGold} />
+          <ActivityIndicator size="small" color={palette.onSilver} />
         </View>
       )}
       <Text style={styles.hint}>地図をタップ、またはピンをドラッグして場所を選択できます</Text>
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: palette.gold,
+    backgroundColor: palette.silver,
     borderRadius: 999,
     padding: 6,
   },

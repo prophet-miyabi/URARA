@@ -53,7 +53,7 @@ export function SilhouetteMotif({
     <MaterialCommunityIcons
       name="human-female"
       size={size}
-      color={palette.goldBright}
+      color={palette.silverBright}
       style={[{ opacity }, style]}
     />
   );
@@ -62,7 +62,7 @@ export function SilhouetteMotif({
 export function GlamourStrip({ title }: { title: string }) {
   return (
     <ImageBackground source={STRIP_IMAGE} style={styles.strip} imageStyle={styles.heroImage}>
-      <LinearGradient colors={['rgba(11,11,12,0.72)', 'rgba(11,11,12,0.88)']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['rgba(5,5,5,0.72)', 'rgba(5,5,5,0.88)']} style={StyleSheet.absoluteFill} />
       <BokehField />
       <SilhouetteMotif size={140} opacity={0.3} style={styles.stripSilhouette} />
       <Text style={styles.stripTitle}>{title}</Text>
@@ -76,7 +76,7 @@ export function TrustBadges({ compact = false }: { compact?: boolean }) {
     <View style={[styles.trustRow, compact && styles.trustRowCompact]}>
       {items.map((label) => (
         <View key={label} style={styles.trustBadge}>
-          <MaterialCommunityIcons name="shield-check" size={12} color={palette.gold} />
+          <MaterialCommunityIcons name="shield-check" size={12} color={palette.silver} />
           <Text style={styles.trustLabel}>{label}</Text>
         </View>
       ))}
@@ -87,7 +87,7 @@ export function TrustBadges({ compact = false }: { compact?: boolean }) {
 const styles = StyleSheet.create({
   bokehDot: {
     position: 'absolute',
-    backgroundColor: palette.goldBright,
+    backgroundColor: palette.silverBright,
   },
   noPointerEvents: { pointerEvents: 'none' },
   heroImage: { resizeMode: 'cover' },
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   stripSilhouette: { position: 'absolute', right: -10, bottom: -20 },
-  stripTitle: { color: palette.cream, fontFamily: 'PlayfairDisplay_700Bold', fontSize: 22 },
+  stripTitle: { color: palette.silverBright, fontFamily: 'PlayfairDisplay_700Bold', fontSize: 22 },
   trustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginTop: 4 },
   trustRowCompact: { justifyContent: 'flex-start' },
   trustBadge: {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     borderWidth: 1,
-    borderColor: palette.goldDeep,
+    borderColor: palette.silverDeep,
     borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 3,

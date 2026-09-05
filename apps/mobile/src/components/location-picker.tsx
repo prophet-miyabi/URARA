@@ -76,7 +76,7 @@ export function LocationPicker({
     <View style={styles.container}>
       {value && (
         <Card style={styles.selectedCard}>
-          <Ionicons name="location" size={16} color={palette.gold} />
+          <Ionicons name="location" size={16} color={palette.silver} />
           <View style={{ flex: 1 }}>
             <Text style={styles.selectedName}>{value.name}</Text>
             {!!value.address && <Text style={styles.selectedAddress}>{value.address}</Text>}
@@ -87,11 +87,11 @@ export function LocationPicker({
       {isMapConfigured && (
         <View style={styles.modeRow}>
           <Pressable style={[styles.modeButton, mode === 'search' && styles.modeButtonActive]} onPress={() => setMode('search')}>
-            <Ionicons name="search" size={14} color={mode === 'search' ? palette.onGold : palette.textMuted} />
+            <Ionicons name="search" size={14} color={mode === 'search' ? palette.onSilver : palette.textMuted} />
             <Text style={[styles.modeButtonText, mode === 'search' && styles.modeButtonTextActive]}>キーワードで検索</Text>
           </Pressable>
           <Pressable style={[styles.modeButton, mode === 'map' && styles.modeButtonActive]} onPress={() => setMode('map')}>
-            <Ionicons name="map" size={14} color={mode === 'map' ? palette.onGold : palette.textMuted} />
+            <Ionicons name="map" size={14} color={mode === 'map' ? palette.onSilver : palette.textMuted} />
             <Text style={[styles.modeButtonText, mode === 'map' && styles.modeButtonTextActive]}>地図から選ぶ</Text>
           </Pressable>
         </View>
@@ -112,7 +112,7 @@ export function LocationPicker({
           onSubmitEditing={!isPlacesApiConfigured ? handleManualSubmit : undefined}
           returnKeyType={isPlacesApiConfigured ? 'search' : 'done'}
         />
-        {loading && <ActivityIndicator size="small" color={palette.gold} />}
+        {loading && <ActivityIndicator size="small" color={palette.silver} />}
       </View>
 
       {!isPlacesApiConfigured && (
@@ -157,7 +157,7 @@ export function LocationPicker({
 
 const styles = StyleSheet.create({
   container: { gap: 10 },
-  selectedCard: { flexDirection: 'row', alignItems: 'center', gap: 10, borderColor: palette.gold, borderWidth: 1.5 },
+  selectedCard: { flexDirection: 'row', alignItems: 'center', gap: 10, borderColor: palette.silver, borderWidth: 1.5 },
   selectedName: { color: palette.text, fontSize: 14, fontWeight: '700' },
   selectedAddress: { color: palette.textMuted, fontSize: 11, marginTop: 2 },
   modeRow: { flexDirection: 'row', gap: 8 },
@@ -173,9 +173,9 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     backgroundColor: palette.card,
   },
-  modeButtonActive: { backgroundColor: palette.gold, borderColor: palette.gold },
+  modeButtonActive: { backgroundColor: palette.silver, borderColor: palette.silver },
   modeButtonText: { color: palette.textMuted, fontSize: 12, fontWeight: '600' },
-  modeButtonTextActive: { color: palette.onGold, fontWeight: '800' },
+  modeButtonTextActive: { color: palette.onSilver, fontWeight: '800' },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -198,6 +198,6 @@ const styles = StyleSheet.create({
   savedLabel: { color: palette.textMuted, fontSize: 12, fontWeight: '700' },
   savedGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   savedChip: { paddingVertical: 8, paddingHorizontal: 12 },
-  savedChipSelected: { borderColor: palette.gold, borderWidth: 1.5 },
+  savedChipSelected: { borderColor: palette.silver, borderWidth: 1.5 },
   savedChipText: { color: palette.text, fontSize: 12, fontWeight: '600' },
 });

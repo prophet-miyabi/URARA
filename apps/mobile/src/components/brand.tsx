@@ -33,23 +33,23 @@ const styles = StyleSheet.create({
   header: { alignItems: 'center', gap: 10, paddingVertical: 8 },
   crest: {
     borderWidth: 1.5,
-    borderColor: palette.gold,
+    borderColor: palette.silver,
     alignItems: 'center',
     justifyContent: 'center',
   },
   crestInner: {
     borderWidth: 1,
-    borderColor: palette.goldBright,
+    borderColor: palette.silverBright,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
   crestLetter: {
-    color: palette.gold,
+    color: palette.silver,
     fontFamily: 'PlayfairDisplay_700Bold',
   },
   wordmark: {
-    color: palette.cream,
+    color: palette.silverBright,
     fontFamily: 'PlayfairDisplay_600SemiBold',
     letterSpacing: 6,
   },

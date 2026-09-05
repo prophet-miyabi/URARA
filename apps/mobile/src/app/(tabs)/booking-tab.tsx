@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useReservationStore } from '@/lib/reservation-store';
 import { STATUS_LABEL, STATUS_STEPS, type ReservationStatus } from '@/lib/types';
 import { formatDateTimeJST } from '@/lib/format';
-import { Badge, GoldButton, PressableCard, palette } from '@/components/ui';
+import { Badge, PlatinumButton, PressableCard, palette } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
 
 export default function BookingTabScreen() {
@@ -19,9 +19,9 @@ export default function BookingTabScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <GlamourStrip title="ご予約" />
 
-      <GoldButton
+      <PlatinumButton
         label="新しく予約する"
-        icon={<Ionicons name="add-circle" size={18} color={palette.onGold} />}
+        icon={<Ionicons name="add-circle" size={18} color={palette.onSilver} />}
         onPress={() => router.push('/booking')}
       />
 
@@ -65,5 +65,5 @@ const styles = StyleSheet.create({
   cardMeta: { color: palette.textMuted, fontSize: 12 },
   stepDots: { flexDirection: 'row', gap: 6, marginTop: 2 },
   dot: { flex: 1, height: 3, borderRadius: 2, backgroundColor: palette.hairline },
-  dotActive: { backgroundColor: palette.gold },
+  dotActive: { backgroundColor: palette.silver },
 });
