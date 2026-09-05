@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { isPlacesApiConfigured, searchPlaces, getPlaceDetails, type PlaceSuggestion } from '@/lib/places';
 import type { Location } from '@/lib/types';
 import { Card, PressableCard, palette } from './ui';
+import { MapPicker, isMapConfigured } from './map-picker';
 
 export function LocationPicker({
   value,
@@ -14,6 +15,7 @@ export function LocationPicker({
   onChange: (location: Location) => void;
   savedLocations: Location[];
 }) {
+  const [mode, setMode] = useState<'search' | 'map'>('search');
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -82,6 +84,23 @@ export function LocationPicker({
         </Card>
       )}
 
+      {isMapConfigured && (
+        <View style={styles.modeRow}>
+          <Pressable style={[styles.modeButton, mode === 'search' && styles.modeButtonActive]} onPress={() => setMode('search')}>
+            <Ionicons name="search" size={14} color={mode === 'search' ? palette.onGold : palette.textMuted} />
+            <Text style={[styles.modeButtonText, mode === 'search' && styles.modeButtonTextActive]}>キーワードで検索</Text>
+          </Pressable>
+          <Pressable style={[styles.modeButton, mode === 'map' && styles.modeButtonActive]} onPress={() => setMode('map')}>
+            <Ionicons name="map" size={14} color={mode === 'map' ? palette.onGold : palette.textMuted} />
+            <Text style={[styles.modeButtonText, mode === 'map' && styles.modeButtonTextActive]}>地図から選ぶ</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {mode === 'map' && isMapConfigured ? (
+        <MapPicker initialLocation={value} onChange={onChange} />
+      ) : (
+        <>
       <View style={styles.searchRow}>
         <Ionicons name="search" size={16} color={palette.textFaint} style={styles.searchIcon} />
         <TextInput
@@ -130,6 +149,8 @@ export function LocationPicker({
           </View>
         </View>
       )}
+        </>
+      )}
     </View>
   );
 }
@@ -139,6 +160,22 @@ const styles = StyleSheet.create({
   selectedCard: { flexDirection: 'row', alignItems: 'center', gap: 10, borderColor: palette.gold, borderWidth: 1.5 },
   selectedName: { color: palette.text, fontSize: 14, fontWeight: '700' },
   selectedAddress: { color: palette.textMuted, fontSize: 11, marginTop: 2 },
+  modeRow: { flexDirection: 'row', gap: 8 },
+  modeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
+    borderRadius: 10,
+    paddingVertical: 9,
+    backgroundColor: palette.card,
+  },
+  modeButtonActive: { backgroundColor: palette.gold, borderColor: palette.gold },
+  modeButtonText: { color: palette.textMuted, fontSize: 12, fontWeight: '600' },
+  modeButtonTextActive: { color: palette.onGold, fontWeight: '800' },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
