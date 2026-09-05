@@ -10,12 +10,6 @@ import { palette } from '@/components/ui';
 // 合わせてリサイズ＋WebP圧縮したもの。見た目は元のPNG版と同一）。
 const LOGO_IMAGE = require('../../../assets/2661.webp');
 const HERO_IMAGE = require('../../../assets/2746.webp');
-// アイコン+文字が一体になった完成イメージ。「キャストを見る」だけは元画像に
-// 背景のぼかし影が入っていて自動抽出では綺麗にならなかったため、単体アイコン
-// （透過済み）に金文字を合成し直して同じ構成の1枚画像にしてある。
-const CAST_BUTTON = require('../../../assets/cast-button.webp');
-const PRICING_BUTTON = require('../../../assets/pricing-button.webp');
-const GUIDE_BUTTON = require('../../../assets/guide-button.webp');
 
 const CHROME_GRADIENT_CSS =
   'linear-gradient(180deg, #FDFDFD 0%, #D4D4D4 30%, #8A8A8A 55%, #EAEAEA 75%, #FFFFFF 100%)';
@@ -165,21 +159,6 @@ export default function HomeScreen() {
               <Text style={styles.footerNote}>お困りの方は、お電話でもご予約いただけます。</Text>
             </BlurView>
           </View>
-
-          {/* --- Bottom Navigation Cards --- */}
-          <View style={styles.navCardsRow}>
-            <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/booking')}>
-              <Image source={CAST_BUTTON} style={styles.navCardButtonImage} contentFit="contain" />
-            </Pressable>
-
-            <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/pricing')}>
-              <Image source={PRICING_BUTTON} style={styles.navCardButtonImage} contentFit="contain" />
-            </Pressable>
-
-            <Pressable style={({ pressed }) => [styles.navCard, pressed && { opacity: 0.7 }]} onPress={() => router.push('/account')}>
-              <Image source={GUIDE_BUTTON} style={styles.navCardButtonImage} contentFit="contain" />
-            </Pressable>
-          </View>
         </View>
       </ScrollView>
     </View>
@@ -274,6 +253,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     marginTop: -48,
     paddingHorizontal: 16,
+    paddingBottom: 32,
     zIndex: 20,
   },
   glassCard: {
@@ -348,26 +328,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     marginTop: 20,
-  },
-  navCardsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 32,
-    paddingBottom: 48,
-    gap: 12,
-  },
-  navCard: {
-    flex: 1,
-    aspectRatio: 0.85,
-    backgroundColor: palette.bgElevated,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: palette.cardBorder,
-    padding: 10,
-    alignItems: 'center',
-  },
-  navCardButtonImage: {
-    flex: 1,
-    width: '100%',
   },
 });
