@@ -41,7 +41,7 @@ function ChromeText({ children, style }: { children: string; style: TextStyle })
 }
 
 const MAX_CONTENT_WIDTH = 520; // Web環境向けの中央寄せ最大幅
-const SUPPORT_PHONE = '055-000-1234';
+const SUPPORT_PHONE = '090-5671-0985';
 
 interface AnimatedButtonProps {
   label: string;
