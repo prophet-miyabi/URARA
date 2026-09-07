@@ -13,6 +13,7 @@ import { PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display/700Bold';
 import { ReservationProvider } from '@/lib/reservation-store';
 import { palette } from '@/components/ui';
+import { HeaderBackButton, HeaderHomeButton } from '@/components/header-nav-buttons';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,9 +39,30 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="booking/index" options={{ title: '予約する', headerBackTitle: '戻る' }} />
-          <Stack.Screen name="pricing/index" options={{ title: '料金・対応エリア', headerBackTitle: '戻る' }} />
-          <Stack.Screen name="reservation/[id]" options={{ title: '予約状況', headerBackTitle: '戻る' }} />
+          <Stack.Screen
+            name="booking/index"
+            options={{
+              title: '予約する',
+              headerLeft: () => <HeaderBackButton />,
+              headerRight: () => <HeaderHomeButton />,
+            }}
+          />
+          <Stack.Screen
+            name="pricing/index"
+            options={{
+              title: '料金・対応エリア',
+              headerLeft: () => <HeaderBackButton />,
+              headerRight: () => <HeaderHomeButton />,
+            }}
+          />
+          <Stack.Screen
+            name="reservation/[id]"
+            options={{
+              title: '予約状況',
+              headerLeft: () => <HeaderBackButton />,
+              headerRight: () => <HeaderHomeButton />,
+            }}
+          />
         </Stack>
       </ReservationProvider>
     </SafeAreaProvider>

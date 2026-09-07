@@ -35,6 +35,7 @@ export default function BookingScreen() {
   const [wantsPreference, setWantsPreference] = useState(false);
   const [bodyType, setBodyType] = useState<string | null>(null);
   const [personalities, setPersonalities] = useState<string[]>([]);
+  const [preferenceNotes, setPreferenceNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [notes, setNotes] = useState('');
   const [email, setEmail] = useState(contactEmail);
@@ -89,7 +90,9 @@ export default function BookingScreen() {
     if (wantsPreference && bodyType) preferenceParts.push(`体型: ${bodyType}`);
     if (wantsPreference && personalities.length > 0) preferenceParts.push(`性格・雰囲気: ${personalities.join('・')}`);
     const preferenceSummary = preferenceParts.length > 0 ? `【キャストのご希望】${preferenceParts.join(' / ')}` : null;
-    const combinedNotes = [preferenceSummary, notes.trim()].filter(Boolean).join('\n');
+    const preferenceNoteLine =
+      wantsPreference && preferenceNotes.trim() ? `【服装・その他のご希望】${preferenceNotes.trim()}` : null;
+    const combinedNotes = [preferenceSummary, preferenceNoteLine, notes.trim()].filter(Boolean).join('\n');
 
     const reservation = createReservation({
       location,
@@ -212,6 +215,18 @@ export default function BookingScreen() {
                   <Chip key={p} label={p} selected={personalities.includes(p)} onPress={() => togglePersonality(p)} />
                 ))}
               </View>
+
+              <Text style={styles.fieldLabel}>服装・その他のご希望</Text>
+              <TextInput
+                style={styles.preferenceNotesInput}
+                multiline
+                numberOfLines={3}
+                placeholder="服装の系統やその他のご希望があればご自由にご記入ください（任意）"
+                placeholderTextColor={palette.textFaint}
+                value={preferenceNotes}
+                onChangeText={setPreferenceNotes}
+              />
+
               <Text style={styles.formNote}>
                 ※ あくまでご希望としてお伺いするものです。必ずしもご希望通りのキャストになるとは限りません。
               </Text>
@@ -367,6 +382,17 @@ const styles = StyleSheet.create({
   stepperControl: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   stepperValue: { fontSize: 16, fontWeight: '700', minWidth: 40, textAlign: 'center', color: palette.text },
   preferenceBox: { gap: 8 },
+  preferenceNotesInput: {
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
+    minHeight: 70,
+    textAlignVertical: 'top',
+    backgroundColor: palette.card,
+    color: palette.text,
+  },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     borderWidth: 1,

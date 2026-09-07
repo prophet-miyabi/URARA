@@ -148,7 +148,7 @@ export default function HomeScreen() {
               </Text>
 
               <View style={styles.actionGroup}>
-                <AnimatedButton icon="🗓" label="今すぐ予約する" onPress={() => router.push('/booking')} variant="silver" />
+                <AnimatedButton label="今すぐ予約する" onPress={() => router.push('/booking')} variant="silver" />
                 <AnimatedButton
                   label="電話で相談"
                   onPress={() => Linking.openURL(`tel:${SUPPORT_PHONE.replace(/-/g, '')}`)}
