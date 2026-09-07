@@ -12,6 +12,7 @@ import { GlamourStrip, TrustBadges } from '@/components/glamour';
 import { CalendarPicker, TimeSlotPicker } from '@/components/calendar';
 import { LocationPicker } from '@/components/location-picker';
 import { CardPaymentField } from '@/components/card-payment-field';
+import { EmailVerificationField } from '@/components/email-verification';
 
 const STEP_LABELS = ['ご予約内容', 'お支払い・確認'];
 const BODY_TYPES = ['スレンダー', '普通体型', 'グラマー', 'ぽっちゃり'];
@@ -19,7 +20,7 @@ const PERSONALITIES = ['朗らか', '上品', '社交的', '癒し', '気配り'
 
 export default function BookingScreen() {
   const router = useRouter();
-  const { savedLocations, recordLocationUsage, contactEmail, updateContactEmail, createReservation } =
+  const { savedLocations, recordLocationUsage, contactEmail, updateContactEmail, createReservation, verifiedEmail } =
     useReservationStore();
   const [step, setStep] = useState(0);
 
@@ -65,8 +66,13 @@ export default function BookingScreen() {
   const canProceedStep0 = location !== null && (bookingType === 'now' || scheduledIso !== null);
   const cardPaymentUnavailable = paymentMethod === 'card' && !isStripeConfigured;
   const needsCardEntry = paymentMethod === 'card' && isStripeConfigured;
+  const isEmailVerified = verifiedEmail !== null && verifiedEmail === email.trim().toLowerCase();
   const canSubmit =
-    isValidEmail(email) && !paying && !cardPaymentUnavailable && (!needsCardEntry || cardComplete);
+    isValidEmail(email) &&
+    isEmailVerified &&
+    !paying &&
+    !cardPaymentUnavailable &&
+    (!needsCardEntry || cardComplete);
 
   const handleSelectLocation = (loc: Location) => {
     setLocation(loc);
@@ -225,22 +231,14 @@ export default function BookingScreen() {
           <Text style={styles.stepTitle}>お支払い方法・確認</Text>
 
           <Text style={styles.fieldLabel}>メールアドレス</Text>
-          <Text style={styles.stepHint}>予約の受付完了通知をお送りします</Text>
-          <TextInput
-            style={styles.emailInput}
-            value={email}
-            onChangeText={(v) => {
+          <Text style={styles.stepHint}>本人確認のため、認証コードの送信が必要です</Text>
+          <EmailVerificationField
+            email={email}
+            onEmailChange={(v) => {
               setEmail(v);
               setEmailTouched(true);
             }}
-            placeholder="you@example.com"
-            placeholderTextColor={palette.textFaint}
-            autoCapitalize="none"
-            keyboardType="email-address"
           />
-          {email.length > 0 && !isValidEmail(email) && (
-            <Text style={styles.emailError}>メールアドレスの形式が正しくありません</Text>
-          )}
 
           <Text style={styles.fieldLabel}>お支払い方法</Text>
           <View style={styles.toggleRow}>
@@ -398,16 +396,6 @@ const styles = StyleSheet.create({
     color: palette.text,
   },
   disclaimer: { fontSize: 11, color: palette.textMuted, lineHeight: 16 },
-  emailInput: {
-    borderWidth: 1,
-    borderColor: palette.cardBorder,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    color: palette.text,
-    backgroundColor: palette.card,
-  },
   emailError: { color: palette.danger, fontSize: 11, marginTop: -8 },
   nav: { flexDirection: 'row', gap: 10, justifyContent: 'flex-end' },
 });

@@ -22,6 +22,8 @@ services:
         sync: false
       - key: ADMIN_SESSION_SECRET
         generateValue: true
+      - key: EMAIL_VERIFICATION_SECRET
+        generateValue: true
 
   - type: web
     name: urara-app

@@ -5,7 +5,10 @@ import { calculatePrice } from '@companion-dispatch/pricing';
 const ADMIN_API_BASE_URL = process.env.EXPO_PUBLIC_ADMIN_API_BASE_URL ?? 'https://urara-admin.onrender.com';
 
 // Best-effort: failures are logged but never block the booking flow.
-export async function sendReservationReceivedEmail(reservation: Reservation): Promise<void> {
+export async function sendReservationReceivedEmail(
+  reservation: Reservation,
+  verificationToken?: string
+): Promise<void> {
   if (!reservation.contactEmail) return;
 
   const price = calculatePrice({
@@ -26,6 +29,7 @@ export async function sendReservationReceivedEmail(reservation: Reservation): Pr
         companionCount: reservation.companionCount,
         estimatedTotalLabel: formatYen(price.totalPrice),
         notes: reservation.notes,
+        verificationToken,
       }),
     });
     if (!res.ok) {

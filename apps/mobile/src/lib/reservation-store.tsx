@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { MOCK_MY_RESERVATIONS } from './mock-data';
 import { sendReservationReceivedEmail } from './notify';
-import { getSavedEmail, saveEmail } from './profile';
+import { getSavedEmail, getSavedVerification, saveEmail, saveVerification } from './profile';
 import { getSavedLocations, saveLocation } from './saved-locations';
 import type { Location, Reservation } from './types';
 
@@ -27,6 +27,9 @@ interface Store {
   getReservation: (id: string) => Reservation | undefined;
   recordLocationUsage: (location: Location) => void;
   updateContactEmail: (email: string) => void;
+  verifiedEmail: string | null;
+  setVerification: (email: string, token: string) => void;
+  clearVerification: () => void;
 }
 
 const ReservationContext = createContext<Store | null>(null);
@@ -36,10 +39,18 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
   const [savedLocations, setSavedLocations] = useState<Location[]>([]);
   const [contactEmail, setContactEmail] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
   useEffect(() => {
     getSavedLocations().then(setSavedLocations);
     getSavedEmail().then(setContactEmail);
+    getSavedVerification().then((v) => {
+      if (v) {
+        setVerifiedEmail(v.email);
+        setVerificationToken(v.token);
+      }
+    });
   }, []);
 
   const login = useCallback(() => setIsLoggedIn(true), []);
@@ -53,18 +64,33 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
     saveEmail(email);
   }, []);
 
-  const createReservation = useCallback((input: NewReservationInput) => {
-    const reservation: Reservation = {
-      id: `r${Date.now()}`,
-      travelFee: 0,
-      status: 'received',
-      createdAt: new Date().toISOString(),
-      ...input,
-    };
-    setReservations((prev) => [reservation, ...prev]);
-    sendReservationReceivedEmail(reservation);
-    return reservation;
+  const setVerification = useCallback((email: string, token: string) => {
+    setVerifiedEmail(email);
+    setVerificationToken(token);
+    saveVerification({ email, token });
   }, []);
+
+  const clearVerification = useCallback(() => {
+    setVerifiedEmail(null);
+    setVerificationToken(null);
+    saveVerification(null);
+  }, []);
+
+  const createReservation = useCallback(
+    (input: NewReservationInput) => {
+      const reservation: Reservation = {
+        id: `r${Date.now()}`,
+        travelFee: 0,
+        status: 'received',
+        createdAt: new Date().toISOString(),
+        ...input,
+      };
+      setReservations((prev) => [reservation, ...prev]);
+      sendReservationReceivedEmail(reservation, verificationToken ?? undefined);
+      return reservation;
+    },
+    [verificationToken]
+  );
 
   const getReservation = useCallback(
     (id: string) => reservations.find((r) => r.id === id),
@@ -82,6 +108,9 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
       getReservation,
       recordLocationUsage,
       updateContactEmail,
+      verifiedEmail,
+      setVerification,
+      clearVerification,
     }),
     [
       reservations,
@@ -93,6 +122,9 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
       getReservation,
       recordLocationUsage,
       updateContactEmail,
+      verifiedEmail,
+      setVerification,
+      clearVerification,
     ]
   );
 
