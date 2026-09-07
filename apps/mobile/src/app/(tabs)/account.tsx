@@ -10,11 +10,12 @@ import { GlamourStrip } from '@/components/glamour';
 
 export default function AccountScreen() {
   const router = useRouter();
-  const { contactEmail, updateContactEmail, reservations } = useReservationStore();
+  const { contactEmail, updateContactEmail, reservations, verifiedEmail } = useReservationStore();
   const [draft, setDraft] = useState(contactEmail);
   const [lastSeenEmail, setLastSeenEmail] = useState(contactEmail);
 
   const activeReservation = reservations.find((r) => r.status !== 'completed' && r.status !== 'cancelled');
+  const isEmailVerified = verifiedEmail !== null && verifiedEmail === contactEmail.trim().toLowerCase();
 
   // contactEmail loads asynchronously from storage after mount; sync the draft
   // once it arrives without clobbering anything the user has already typed.
@@ -29,11 +30,6 @@ export default function AccountScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <GlamourStrip title="マイページ" />
-
-      <Card style={styles.card}>
-        <Text style={styles.name}>山本 太郎 様</Text>
-        <Text style={styles.phone}>080-1234-5678</Text>
-      </Card>
 
       {activeReservation && (
         <PressableCard style={styles.activeCard} onPress={() => router.push(`/reservation/${activeReservation.id}`)}>
@@ -66,28 +62,18 @@ export default function AccountScreen() {
       </Card>
 
       <Card style={styles.row}>
-        <Text style={styles.rowLabel}>本人確認</Text>
-        <Badge label="確認済み" tone="success" />
-      </Card>
-
-      <Card style={styles.row}>
-        <Text style={styles.rowLabel}>デフォルト支払い方法</Text>
-        <Text style={styles.rowValue}>カード（Visa •••• 1234）</Text>
-      </Card>
-
-      <Card style={styles.row}>
-        <Text style={styles.rowLabel}>通知設定</Text>
-        <Text style={styles.rowValue}>予約確定通知: ON</Text>
+        <Text style={styles.rowLabel}>本人確認（メール）</Text>
+        {isEmailVerified ? (
+          <Badge label="確認済み" tone="success" />
+        ) : (
+          <Badge label="未確認" tone="warning" />
+        )}
       </Card>
 
       <Card style={styles.row}>
         <Text style={styles.rowLabel}>お問い合わせ</Text>
         <Text style={styles.rowValue}>予約や当日の内容についてのご相談はこちら</Text>
       </Card>
-
-      <Text style={styles.note}>
-        ※本画面はモックデータで動作するプレビューです。会員登録・本人確認アップロード等は次フェーズで実装します。
-      </Text>
     </ScrollView>
   );
 }
@@ -96,8 +82,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bg },
   content: { padding: 20, gap: 12 },
   card: { gap: 8 },
-  name: { fontSize: 18, fontWeight: '800', color: palette.text },
-  phone: { fontSize: 13, color: palette.textMuted },
   activeCard: { gap: 6 },
   activeCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   activeCardTitle: { fontSize: 14, fontWeight: '700', color: palette.text },
@@ -117,5 +101,4 @@ const styles = StyleSheet.create({
     backgroundColor: palette.bgElevated,
   },
   error: { color: palette.danger, fontSize: 11 },
-  note: { fontSize: 11, color: palette.textFaint, marginTop: 8 },
 });
