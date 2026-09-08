@@ -29,15 +29,17 @@ function loadGoogleMaps(): Promise<void> {
 }
 
 export function MapPicker({
-  initialLocation,
+  location,
   onChange,
 }: {
-  initialLocation: Location | null;
+  location: Location | null;
   onChange: (location: Location) => void;
 }) {
   // View の ref はWebでは実DOM要素（div）を指す。react-native-web独自の挙動で、
   // ネイティブ版はこのファイルごと使われない（map-picker.tsx が代わりに読み込まれる）。
   const containerRef = useRef<View>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markerRef = useRef<google.maps.Marker | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [resolving, setResolving] = useState(false);
 
@@ -51,8 +53,8 @@ export function MapPicker({
         if (!node) return;
 
         const center =
-          initialLocation && (initialLocation.lat !== 0 || initialLocation.lng !== 0)
-            ? { lat: initialLocation.lat, lng: initialLocation.lng }
+          location && (location.lat !== 0 || location.lng !== 0)
+            ? { lat: location.lat, lng: location.lng }
             : DEFAULT_CENTER;
 
         const map = new google.maps.Map(node, {
@@ -64,6 +66,8 @@ export function MapPicker({
         });
         const marker = new google.maps.Marker({ position: center, map, draggable: true });
         const geocoder = new google.maps.Geocoder();
+        mapRef.current = map;
+        markerRef.current = marker;
 
         const resolvePosition = (lat: number, lng: number) => {
           setResolving(true);
@@ -106,6 +110,17 @@ export function MapPicker({
     // 初回マウント時のみ地図を初期化する（毎回の再生成を避けるため依存配列は空のまま）。
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // キーワード検索などで外部からlocationが変わった場合、地図上のピンと中心を
+  // 追従させる（ユーザーが地図を直接操作した結果としてlocationが変わった場合は
+  // 同じ位置への再設定になるだけなので実質no-op）。
+  useEffect(() => {
+    if (!mapRef.current || !markerRef.current) return;
+    if (!location || (location.lat === 0 && location.lng === 0)) return;
+    const position = { lat: location.lat, lng: location.lng };
+    markerRef.current.setPosition(position);
+    mapRef.current.panTo(position);
+  }, [location]);
 
   return (
     <View style={styles.wrapper}>
