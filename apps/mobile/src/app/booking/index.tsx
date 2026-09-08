@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { calculatePrice } from '@companion-dispatch/pricing';
 import { useReservationStore } from '@/lib/reservation-store';
 import { isValidEmail } from '@/lib/profile';
@@ -38,6 +39,7 @@ export default function BookingScreen() {
   const [preferenceNotes, setPreferenceNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [notes, setNotes] = useState('');
+  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [email, setEmail] = useState(contactEmail);
   const [emailTouched, setEmailTouched] = useState(false);
   const [lastSeenContactEmail, setLastSeenContactEmail] = useState(contactEmail);
@@ -71,6 +73,7 @@ export default function BookingScreen() {
   const canSubmit =
     isValidEmail(email) &&
     isEmailVerified &&
+    agreedToPolicy &&
     !paying &&
     !cardPaymentUnavailable &&
     (!needsCardEntry || cardComplete);
@@ -304,6 +307,21 @@ export default function BookingScreen() {
           <Text style={styles.disclaimer}>
             ご注意: お申込み時点ではまだ予約は確定しません。手配完了後、運営から「予約確定」通知が届いた時点で成立となります。
           </Text>
+
+          <View style={styles.policyBox}>
+            <Text style={styles.policyText}>
+              キャンセルはご利用日の前日20時まで無料です。それ以降のキャンセル、または無断キャンセルの場合、キャンセル料が発生する場合や、今後のご利用をお断りする場合があります。
+            </Text>
+            <Pressable style={styles.agreeRow} onPress={() => setAgreedToPolicy((v) => !v)}>
+              <Ionicons
+                name={agreedToPolicy ? 'checkbox' : 'square-outline'}
+                size={20}
+                color={agreedToPolicy ? palette.silver : palette.textMuted}
+              />
+              <Text style={styles.agreeText}>上記のキャンセルポリシーに同意します</Text>
+            </Pressable>
+          </View>
+
           <TrustBadges compact />
         </View>
       )}
@@ -422,6 +440,17 @@ const styles = StyleSheet.create({
     color: palette.text,
   },
   disclaimer: { fontSize: 11, color: palette.textMuted, lineHeight: 16 },
+  policyBox: {
+    gap: 10,
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
+    borderRadius: 10,
+    padding: 12,
+    backgroundColor: palette.card,
+  },
+  policyText: { fontSize: 12, color: palette.textMuted, lineHeight: 18 },
+  agreeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  agreeText: { fontSize: 13, color: palette.text, fontWeight: '600', flexShrink: 1 },
   emailError: { color: palette.danger, fontSize: 11, marginTop: -8 },
   nav: { flexDirection: 'row', gap: 10, justifyContent: 'flex-end' },
 });

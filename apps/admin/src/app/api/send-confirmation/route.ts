@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyVerificationToken } from '@/lib/email-otp';
 import { corsHeaders, escapeHtml, sendEmail } from '@/lib/email';
+import { checkAndRecordReservationAttempt } from '@/lib/reservation-rate-limit';
 
 // 未設定の場合は運営宛の通知メールをスキップするだけで、顧客への受付完了メールは
 // 通常通り送信される（お客様体験を壊さないためのベストエフォート仕様）。
@@ -22,6 +23,7 @@ interface RequestBody {
   estimatedTotalLabel: string;
   notes?: string;
   verificationToken?: string;
+  bookingType?: 'now' | 'scheduled';
 }
 
 export async function POST(request: Request) {
@@ -51,6 +53,16 @@ export async function POST(request: Request) {
         { status: 401, headers: corsHeaders() }
       );
     }
+  }
+
+  // 同一メールアドレスからの短時間の連続送信（いたずら・誤送信の連打）を
+  // 間引く。予約自体は端末側で成立済みなので、ここで弾いても顧客体験は
+  // 壊さない（通知メールが一通にまとまるだけ）。
+  if (!checkAndRecordReservationAttempt(body.to)) {
+    return NextResponse.json(
+      { error: '短時間に複数回のリクエストがあったため、通知を間引きました' },
+      { status: 429, headers: corsHeaders() }
+    );
   }
 
   const customerSent = await sendEmail(
@@ -109,6 +121,13 @@ function renderOperatorEmail(body: RequestBody): string {
     <div style="max-width:480px;margin:0 auto;background:#121212;border:1px solid #2A2A2A;border-radius:14px;padding:28px;color:#F5F5F7;">
       <p style="letter-spacing:4px;color:#E0E0E0;font-size:13px;text-align:center;margin:0 0 4px;">URARA 管理者通知</p>
       <h1 style="font-size:18px;text-align:center;margin:0 0 20px;color:#F5F5F7;">新規予約リクエストがあります</h1>
+      ${
+        body.bookingType === 'now'
+          ? `<p style="background:#2A1815;color:#D97F72;font-size:13px;font-weight:700;text-align:center;padding:10px;border-radius:8px;margin:0 0 16px;">
+        ⚠ 即日（今すぐ予約）です。お電話でのご本人確認をお願いします。
+      </p>`
+          : ''
+      }
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
         <tr><td style="color:#6C6C70;padding:6px 0;">予約番号</td><td style="text-align:right;color:#F5F5F7;">${escapeHtml(body.reservationId)}</td></tr>
         <tr><td style="color:#6C6C70;padding:6px 0;">お客様メール</td><td style="text-align:right;color:#F5F5F7;">${escapeHtml(body.to)}</td></tr>

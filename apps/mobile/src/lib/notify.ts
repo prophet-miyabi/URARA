@@ -30,6 +30,7 @@ export async function sendReservationReceivedEmail(
         estimatedTotalLabel: formatYen(price.totalPrice),
         notes: reservation.notes,
         verificationToken,
+        bookingType: reservation.bookingType,
       }),
     });
     if (!res.ok) {
