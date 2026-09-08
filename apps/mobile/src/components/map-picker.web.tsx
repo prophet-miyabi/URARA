@@ -18,8 +18,13 @@ function loadGoogleMaps(): Promise<void> {
       resolve();
       return;
     }
+    // 「loading=async」を付けると、onload発火時点でMarker/Geocoderなど一部の
+    // サブライブラリがまだ読み込み中で、直後にnew google.maps.Marker(...)等を
+    // 呼ぶと稀に失敗する（本来はimportLibrary()で個別に待つのが正しい使い方）。
+    // このコードは従来のコンストラクタ呼び出しに依存しているため、あえて
+    // async指定を外し、onload時点で全APIが揃う従来方式のまま読み込む。
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&loading=async&language=ja&region=JP`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&language=ja&region=JP`;
     script.async = true;
     script.onload = () => resolve();
     script.onerror = () => reject(new Error('Google Maps script failed to load'));
