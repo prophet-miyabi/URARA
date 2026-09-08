@@ -1,72 +1,16 @@
-import { ImageBackground, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { palette } from './ui';
 
-const STRIP_IMAGE = require('../../assets/images/dinner-toast.webp');
-
-const BOKEH_LARGE = [
-  { top: '6%', left: '78%', size: 46, opacity: 0.16 },
-  { top: '58%', left: '4%', size: 60, opacity: 0.12 },
-  { top: '80%', left: '70%', size: 34, opacity: 0.14 },
-  { top: '20%', left: '10%', size: 22, opacity: 0.18 },
-  { top: '38%', left: '88%', size: 18, opacity: 0.2 },
-  { top: '68%', left: '40%', size: 14, opacity: 0.22 },
-  { top: '10%', left: '46%', size: 12, opacity: 0.2 },
-  { top: '86%', left: '20%', size: 16, opacity: 0.16 },
-] as const;
-
-export function BokehField({ dense = false }: { dense?: boolean }) {
-  const dots = dense ? BOKEH_LARGE : BOKEH_LARGE.slice(0, 5);
-  return (
-    <View style={[StyleSheet.absoluteFill, styles.noPointerEvents]}>
-      {dots.map((d, i) => (
-        <View
-          key={i}
-          style={[
-            styles.bokehDot,
-            {
-              top: d.top,
-              left: d.left,
-              width: d.size,
-              height: d.size,
-              borderRadius: d.size / 2,
-              opacity: d.opacity,
-            },
-          ]}
-        />
-      ))}
-    </View>
-  );
-}
-
-export function SilhouetteMotif({
-  size = 220,
-  opacity = 0.14,
-  style,
-}: {
-  size?: number;
-  opacity?: number;
-  style?: object;
-}) {
-  return (
-    <MaterialCommunityIcons
-      name="human-female"
-      size={size}
-      color={palette.silverBright}
-      style={[{ opacity }, style]}
-    />
-  );
-}
+const LOGO_IMAGE = require('../../assets/urara-crest.webp');
 
 export function GlamourStrip({ title }: { title: string }) {
   return (
-    <ImageBackground source={STRIP_IMAGE} style={styles.strip} imageStyle={styles.heroImage}>
-      <LinearGradient colors={['rgba(5,5,5,0.72)', 'rgba(5,5,5,0.88)']} style={StyleSheet.absoluteFill} />
-      <BokehField />
-      <SilhouetteMotif size={140} opacity={0.3} style={styles.stripSilhouette} />
+    <View style={styles.strip}>
       <Text style={styles.stripTitle}>{title}</Text>
-    </ImageBackground>
+      <Image source={LOGO_IMAGE} style={styles.stripLogo} contentFit="contain" />
+    </View>
   );
 }
 
@@ -85,23 +29,21 @@ export function TrustBadges({ compact = false }: { compact?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  bokehDot: {
-    position: 'absolute',
-    backgroundColor: palette.silverBright,
-  },
-  noPointerEvents: { pointerEvents: 'none' },
-  heroImage: { resizeMode: 'cover' },
   strip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: palette.cardBorder,
-    overflow: 'hidden',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     marginBottom: 4,
   },
-  stripSilhouette: { position: 'absolute', right: -10, bottom: -20 },
-  stripTitle: { color: palette.silverBright, fontFamily: 'PlayfairDisplay_700Bold', fontSize: 22 },
+  stripTitle: { color: '#000000', fontFamily: 'PlayfairDisplay_700Bold', fontSize: 20, flexShrink: 1 },
+  stripLogo: { width: 64, height: 46, flexShrink: 0 },
   trustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginTop: 4 },
   trustRowCompact: { justifyContent: 'flex-start' },
   trustBadge: {
