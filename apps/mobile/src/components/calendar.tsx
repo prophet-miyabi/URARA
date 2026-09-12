@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { palette } from './ui';
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
@@ -10,7 +11,7 @@ function startOfDay(d: Date): Date {
   return x;
 }
 
-function isSameDay(a: Date, b: Date): boolean {
+export function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
@@ -129,37 +130,178 @@ function MonthGrid({
 }
 
 const HOURS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+const MINUTES = [0, 15, 30, 45];
 
-export function TimeSlotPicker({
+const WHEEL_ITEM_HEIGHT = 40;
+const WHEEL_VISIBLE_ITEMS = 5;
+const WHEEL_HEIGHT = WHEEL_ITEM_HEIGHT * WHEEL_VISIBLE_ITEMS;
+const WHEEL_PADDING = WHEEL_ITEM_HEIGHT * Math.floor(WHEEL_VISIBLE_ITEMS / 2);
+
+// 最初にその日で選択可能な最も早い時刻(hour, 0分)を返す。今日の場合は現在時刻より
+// 後の枠のみ、それ以外の日は先頭の営業開始時刻を返す。
+export function firstAvailableHour(date: Date): number {
+  const now = new Date();
+  if (!isSameDay(date, now)) return HOURS[0];
+  const next = HOURS.find((h) => h > now.getHours());
+  return next ?? HOURS[0];
+}
+
+function WheelColumn({
+  values,
+  selectedIndex,
+  disabledSet,
+  onSelect,
+  formatLabel,
+}: {
+  values: number[];
+  selectedIndex: number;
+  disabledSet?: Set<number>;
+  onSelect: (index: number) => void;
+  formatLabel: (value: number) => string;
+}) {
+  const scrollRef = useRef<ScrollView>(null);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: selectedIndex * WHEEL_ITEM_HEIGHT, animated: false });
+    // 初回マウント時のみ選択中の値へスクロール位置を合わせる。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+    };
+  }, []);
+
+  const scrollToIndex = (index: number, animated = true) => {
+    scrollRef.current?.scrollTo({ y: index * WHEEL_ITEM_HEIGHT, animated });
+  };
+
+  const nearestEnabledIndex = (index: number): number => {
+    if (!disabledSet || !disabledSet.has(values[index])) return index;
+    for (let offset = 1; offset < values.length; offset++) {
+      const forward = index + offset;
+      if (forward < values.length && !disabledSet.has(values[forward])) return forward;
+      const backward = index - offset;
+      if (backward >= 0 && !disabledSet.has(values[backward])) return backward;
+    }
+    return index;
+  };
+
+  const commitOffset = (offsetY: number) => {
+    const rawIndex = Math.round(offsetY / WHEEL_ITEM_HEIGHT);
+    const clamped = Math.max(0, Math.min(values.length - 1, rawIndex));
+    const index = nearestEnabledIndex(clamped);
+    onSelect(index);
+    if (index !== clamped) scrollToIndex(index);
+  };
+
+  const handleMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    commitOffset(e.nativeEvent.contentOffset.y);
+  };
+
+  // react-native-webはマウスホイール/トラックパッド操作からの
+  // onMomentumScrollEnd発火が不安定なため、onScrollの間隔が一定時間
+  // (120ms)途切れたら「止まった」とみなす独自のフォールバックを併用する
+  // (ネイティブのタッチスクロールではonMomentumScrollEnd側が先に発火し、
+  // このタイマーはクリアされるだけなので二重実行はしない)。
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = e.nativeEvent.contentOffset.y;
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(() => commitOffset(offsetY), 120);
+  };
+
+  return (
+    <View style={styles.wheelColumn}>
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={WHEEL_ITEM_HEIGHT}
+        decelerationRate="fast"
+        onMomentumScrollEnd={handleMomentumEnd}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{ paddingVertical: WHEEL_PADDING }}
+      >
+        {values.map((value, index) => {
+          const disabled = disabledSet?.has(value) ?? false;
+          const selected = index === selectedIndex;
+          return (
+            <Pressable
+              key={value}
+              disabled={disabled}
+              onPress={() => {
+                onSelect(index);
+                scrollToIndex(index);
+              }}
+              style={styles.wheelItem}
+            >
+              <Text
+                style={[
+                  styles.wheelItemText,
+                  selected && styles.wheelItemTextSelected,
+                  disabled && styles.wheelItemTextDisabled,
+                ]}
+              >
+                {formatLabel(value)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+      <View pointerEvents="none" style={styles.wheelHighlight} />
+      <LinearGradient
+        pointerEvents="none"
+        colors={[palette.card, 'transparent']}
+        style={styles.wheelFadeTop}
+      />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['transparent', palette.card]}
+        style={styles.wheelFadeBottom}
+      />
+    </View>
+  );
+}
+
+// 主要な予約系サービスでよく使われる、時・分を別々にスクロールして選ぶ
+// ホイールピッカー形式。選択中の値は中央のハイライト帯に来る。
+export function TimeWheelPicker({
   date,
-  selectedHour,
-  onSelectHour,
+  hour,
+  minute,
+  onChange,
 }: {
   date: Date;
-  selectedHour: number | null;
-  onSelectHour: (hour: number) => void;
+  hour: number;
+  minute: number;
+  onChange: (hour: number, minute: number) => void;
 }) {
   const now = new Date();
   const isToday = isSameDay(date, now);
+  const disabledHours = isToday ? new Set(HOURS.filter((h) => h <= now.getHours())) : undefined;
+
+  const hourIndex = Math.max(0, HOURS.indexOf(hour));
+  const minuteIndex = Math.max(0, MINUTES.indexOf(minute));
 
   return (
-    <View style={styles.timeGrid}>
-      {HOURS.map((hour) => {
-        const disabled = isToday && hour <= now.getHours();
-        const selected = selectedHour === hour;
-        return (
-          <Pressable
-            key={hour}
-            disabled={disabled}
-            onPress={() => onSelectHour(hour)}
-            style={[styles.timeCell, selected && styles.timeCellSelected, disabled && styles.timeCellDisabled]}
-          >
-            <Text style={[styles.timeLabel, selected && styles.timeLabelSelected, disabled && styles.timeLabelDisabled]}>
-              {hour}:00
-            </Text>
-          </Pressable>
-        );
-      })}
+    <View style={styles.wheelRow}>
+      <WheelColumn
+        values={HOURS}
+        selectedIndex={hourIndex}
+        disabledSet={disabledHours}
+        onSelect={(index) => onChange(HOURS[index], minute)}
+        formatLabel={(h) => `${h}時`}
+      />
+      <Text style={styles.wheelSeparator}>:</Text>
+      <WheelColumn
+        values={MINUTES}
+        selectedIndex={minuteIndex}
+        onSelect={(index) => onChange(hour, MINUTES[index])}
+        formatLabel={(m) => `${String(m).padStart(2, '0')}分`}
+      />
     </View>
   );
 }
@@ -195,18 +337,32 @@ const styles = StyleSheet.create({
   dayLabel: { color: palette.text, fontSize: 13, fontWeight: '600' },
   dayLabelDisabled: { color: palette.textFaint, opacity: 0.4 },
   dayLabelSelected: { color: palette.onSilver, fontWeight: '800' },
-  timeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  timeCell: {
+  wheelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 },
+  wheelColumn: {
+    width: 96,
+    height: WHEEL_HEIGHT,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: palette.cardBorder,
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
     backgroundColor: palette.card,
+    overflow: 'hidden',
   },
-  timeCellSelected: { borderColor: palette.silver, backgroundColor: palette.silver },
-  timeCellDisabled: { opacity: 0.3 },
-  timeLabel: { color: palette.text, fontSize: 12, fontWeight: '600' },
-  timeLabelSelected: { color: palette.onSilver, fontWeight: '800' },
-  timeLabelDisabled: { color: palette.textFaint },
+  wheelItem: { height: WHEEL_ITEM_HEIGHT, alignItems: 'center', justifyContent: 'center' },
+  wheelItemText: { fontSize: 16, color: palette.textMuted, fontWeight: '600' },
+  wheelItemTextSelected: { fontSize: 19, color: palette.text, fontWeight: '800' },
+  wheelItemTextDisabled: { color: palette.textFaint, opacity: 0.4 },
+  wheelHighlight: {
+    position: 'absolute',
+    top: WHEEL_PADDING,
+    left: 0,
+    right: 0,
+    height: WHEEL_ITEM_HEIGHT,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: palette.silver,
+    backgroundColor: 'rgba(224, 224, 224, 0.08)',
+  },
+  wheelFadeTop: { position: 'absolute', top: 0, left: 0, right: 0, height: WHEEL_ITEM_HEIGHT * 1.5 },
+  wheelFadeBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: WHEEL_ITEM_HEIGHT * 1.5 },
+  wheelSeparator: { fontSize: 20, fontWeight: '800', color: palette.text, marginBottom: 2 },
 });

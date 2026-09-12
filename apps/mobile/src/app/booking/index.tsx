@@ -10,7 +10,7 @@ import type { BookingType, Location, PaymentMethod } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
 import { Card, PlatinumButton, SecondaryButton, palette } from '@/components/ui';
 import { GlamourStrip, TrustBadges } from '@/components/glamour';
-import { CalendarPicker, TimeSlotPicker } from '@/components/calendar';
+import { CalendarPicker, TimeWheelPicker, firstAvailableHour, isSameDay } from '@/components/calendar';
 import { LocationPicker } from '@/components/location-picker';
 import { CardPaymentField } from '@/components/card-payment-field';
 import { EmailVerificationField } from '@/components/email-verification';
@@ -26,9 +26,9 @@ export default function BookingScreen() {
   const [step, setStep] = useState(0);
 
   const [location, setLocation] = useState<Location | null>(null);
-  const [bookingType, setBookingType] = useState<BookingType>('scheduled');
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedHour, setSelectedHour] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date());
+  const [selectedHour, setSelectedHour] = useState<number | null>(() => firstAvailableHour(new Date()));
+  const [selectedMinute, setSelectedMinute] = useState(0);
   const [guestCount, setGuestCount] = useState(4);
   const [companionCount, setCompanionCount] = useState(1);
   // キャストの希望: デフォルトは「おまかせ」（ワンタップで完了）。
@@ -60,13 +60,16 @@ export default function BookingScreen() {
   const scheduledIso = useMemo(() => {
     if (!selectedDate || selectedHour === null) return null;
     const d = new Date(selectedDate);
-    d.setHours(selectedHour, 0, 0, 0);
+    d.setHours(selectedHour, selectedMinute, 0, 0);
     return d.toISOString();
-  }, [selectedDate, selectedHour]);
+  }, [selectedDate, selectedHour, selectedMinute]);
 
-  const requestedDatetime = bookingType === 'now' ? new Date().toISOString() : scheduledIso;
+  const requestedDatetime = scheduledIso;
+  // 「今すぐ予約」ボタンは廃止し、カレンダーで当日を選べばそれが「今すぐ」に相当する。
+  // 運営側の即日フラグ（電話確認を促す）は選択日が当日かどうかから自動判定する。
+  const bookingType: BookingType = selectedDate && isSameDay(selectedDate, new Date()) ? 'now' : 'scheduled';
 
-  const canProceedStep0 = location !== null && (bookingType === 'now' || scheduledIso !== null);
+  const canProceedStep0 = location !== null && scheduledIso !== null;
   const cardPaymentUnavailable = paymentMethod === 'card' && !isStripeConfigured;
   const needsCardEntry = paymentMethod === 'card' && isStripeConfigured;
   const isEmailVerified = verifiedEmail !== null && verifiedEmail === email.trim().toLowerCase();
@@ -158,35 +161,32 @@ export default function BookingScreen() {
           <LocationPicker value={location} onChange={handleSelectLocation} savedLocations={savedLocations} />
 
           <Text style={[styles.fieldLabel, { marginTop: 8 }]}>ご利用日時</Text>
-          <View style={styles.toggleRow}>
-            <SecondaryButton
-              label={bookingType === 'now' ? '✓ 今すぐ予約' : '今すぐ予約'}
-              onPress={() => setBookingType('now')}
+          <View style={styles.dateTimeSection}>
+            <CalendarPicker
+              selectedDate={selectedDate}
+              onSelectDate={(d) => {
+                setSelectedDate(d);
+                setSelectedHour(firstAvailableHour(d));
+                setSelectedMinute(0);
+              }}
             />
-            <SecondaryButton
-              label={bookingType === 'scheduled' ? '✓ 日時指定' : '日時指定'}
-              onPress={() => setBookingType('scheduled')}
-            />
+            {selectedDate && selectedHour !== null && (
+              <>
+                <Text style={styles.fieldLabel}>開始時間</Text>
+                <TimeWheelPicker
+                  key={selectedDate.toDateString()}
+                  date={selectedDate}
+                  hour={selectedHour}
+                  minute={selectedMinute}
+                  onChange={(h, m) => {
+                    setSelectedHour(h);
+                    setSelectedMinute(m);
+                  }}
+                />
+              </>
+            )}
+            {scheduledIso && <Text style={styles.selectedDateTime}>選択中: {formatDateTimeJST(scheduledIso)}〜</Text>}
           </View>
-
-          {bookingType === 'scheduled' && (
-            <View style={styles.dateTimeSection}>
-              <CalendarPicker
-                selectedDate={selectedDate}
-                onSelectDate={(d) => {
-                  setSelectedDate(d);
-                  setSelectedHour(null);
-                }}
-              />
-              {selectedDate && (
-                <>
-                  <Text style={styles.fieldLabel}>開始時間</Text>
-                  <TimeSlotPicker date={selectedDate} selectedHour={selectedHour} onSelectHour={setSelectedHour} />
-                </>
-              )}
-              {scheduledIso && <Text style={styles.selectedDateTime}>選択中: {formatDateTimeJST(scheduledIso)}〜</Text>}
-            </View>
-          )}
 
           <Stepper label="お客様の人数" value={guestCount} min={1} onChange={setGuestCount} />
           <Stepper label="希望する女の子の人数" value={companionCount} min={1} onChange={setCompanionCount} />
