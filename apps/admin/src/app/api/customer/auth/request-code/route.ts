@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { issueCode } from "@/lib/email-otp";
-import { corsHeaders, sendEmail } from "@/lib/email";
+import { corsHeaders, isEmailConfigured, sendEmail } from "@/lib/email";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -39,12 +39,22 @@ export async function POST(request: Request) {
     );
   }
 
+  // RESEND_API_KEY未設定のローカル開発時だけメール送信をスキップし、コード自体は
+  // サーバーログに出力する。これは「設定されていないので送れない」という既知の
+  // 状態であり、実際の送信失敗（ドメイン未検証・Resend側のエラー等）とは区別する
+  // ——両方を同じ「skipped」扱いにすると、本番で本当に送信が失敗していても
+  // クライアント側は成功したと誤認してしまう（実際に起きていた不具合）。
+  if (!isEmailConfigured()) {
+    console.warn("Verification code email skipped (RESEND_API_KEY not set); code for", email, "is", result.code);
+    return NextResponse.json({ skipped: true, reason: "email not configured" }, { status: 202, headers: corsHeaders() });
+  }
+
   const sent = await sendEmail(email, "【URARA】認証コード", renderCodeEmail(result.code));
   if (!sent) {
-    // RESEND_API_KEY未設定のローカル開発時はメール送信をスキップするだけで、
-    // コード自体はサーバーログに出力される（send-confirmationと同じ方針）。
-    console.warn("Verification code email skipped; code for", email, "is", result.code);
-    return NextResponse.json({ skipped: true, reason: "email not configured" }, { status: 202, headers: corsHeaders() });
+    return NextResponse.json(
+      { error: "メールの送信に失敗しました。しばらくしてから再度お試しください。" },
+      { status: 502, headers: corsHeaders() }
+    );
   }
 
   return NextResponse.json({ sent: true }, { headers: corsHeaders() });

@@ -1,7 +1,9 @@
 import { randomInt } from "node:crypto";
 
 const CODE_TTL_MS = 5 * 60 * 1000; // 5分
-const RESEND_COOLDOWN_MS = 60 * 1000; // 60秒
+// 実際の連打防止(二重送信ガード)だけが目的の最小限の間隔。UI側は待ち時間を
+// 表示しない即時再送信にしているため、ここも体感で分かるような長さにはしない。
+const RESEND_COOLDOWN_MS = 3 * 1000; // 3秒
 const MAX_ATTEMPTS = 5;
 const TOKEN_TTL_MS = 180 * 24 * 60 * 60 * 1000; // 180日
 const SWEEP_AGE_MS = 60 * 60 * 1000; // 1時間放置されたコードは掃除する

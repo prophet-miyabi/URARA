@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { isValidEmail } from '@/lib/profile';
 import { requestOtpCode, verifyOtpCode } from '@/lib/email-otp';
 import { useReservationStore } from '@/lib/reservation-store';
 import { PlatinumButton, SecondaryButton, palette } from './ui';
-
-const RESEND_COOLDOWN_SECONDS = 60;
 
 export function EmailVerificationField({
   email,
@@ -20,9 +18,7 @@ export function EmailVerificationField({
   const [codeSent, setCodeSent] = useState(false);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [cooldown, setCooldown] = useState(0);
   const [lastSeenEmail, setLastSeenEmail] = useState('');
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const trimmedEmail = email.trim().toLowerCase();
   const isVerified = verifiedEmail !== null && verifiedEmail === trimmedEmail;
@@ -37,28 +33,8 @@ export function EmailVerificationField({
     setError(null);
   }
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
-  const startCooldown = () => {
-    setCooldown(RESEND_COOLDOWN_SECONDS);
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setCooldown((c) => {
-        if (c <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 1000);
-  };
-
   const handleSendCode = async () => {
-    if (!isValidEmail(email) || sending || cooldown > 0) return;
+    if (!isValidEmail(email) || sending) return;
     setSending(true);
     setError(null);
     const result = await requestOtpCode(trimmedEmail);
@@ -68,7 +44,6 @@ export function EmailVerificationField({
       return;
     }
     setCodeSent(true);
-    startCooldown();
   };
 
   const handleVerify = async () => {
@@ -142,9 +117,9 @@ export function EmailVerificationField({
                 disabled={verifying || code.trim().length !== 6}
               />
               <SecondaryButton
-                label={cooldown > 0 ? `再送信まで ${cooldown}秒` : 'コードを再送信'}
+                label={sending ? '送信中...' : 'コードを再送信'}
                 onPress={handleSendCode}
-                disabled={cooldown > 0 || sending}
+                disabled={sending}
               />
             </View>
           )}
