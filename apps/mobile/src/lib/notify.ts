@@ -61,16 +61,14 @@ export async function sendAccountCreatedEmail(fullName: string, verificationToke
 }
 
 // Best-effort: failures are logged but never block the login flow.
-export async function sendLoginNotificationEmail(
-  fullName: string,
-  device: string,
-  verificationToken: string
-): Promise<void> {
+// 端末情報・IPアドレスはサーバー側でリクエスト自体（User-Agent/x-forwarded-for）
+// から取得するため、クライアントから送る必要はない。
+export async function sendLoginNotificationEmail(fullName: string, verificationToken: string): Promise<void> {
   try {
     const res = await fetch(`${ADMIN_API_BASE_URL}/api/notify-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName, device, verificationToken }),
+      body: JSON.stringify({ fullName, verificationToken }),
     });
     if (!res.ok) {
       console.warn('notify-login request failed', res.status);

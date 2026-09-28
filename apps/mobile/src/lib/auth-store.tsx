@@ -1,10 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Platform } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 import { sendAccountCreatedEmail, sendLoginNotificationEmail } from './notify';
 import { isSupabaseConfigured, supabase } from './supabase';
-
-const DEVICE_LABEL = Platform.OS === 'web' ? 'ウェブブラウザ' : Platform.OS === 'ios' ? 'iPhone/iPad' : 'Androidデバイス';
 
 export interface CustomerProfile {
   id: string;
@@ -82,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .eq('id', newSession.user.id)
             .maybeSingle()
             .then(({ data }) => {
-              sendLoginNotificationEmail(data?.full_name || 'お客', DEVICE_LABEL, newSession.access_token);
+              sendLoginNotificationEmail(data?.full_name || 'お客', newSession.access_token);
             });
         }
       } else {

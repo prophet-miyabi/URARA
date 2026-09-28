@@ -294,7 +294,7 @@ export default function BookingScreen() {
 
           <View style={styles.policyBox}>
             <Text style={styles.policyText}>
-              キャンセルはご利用日の前日20時まで無料です。それ以降のキャンセル、または無断キャンセルの場合、キャンセル料が発生する場合や、今後のご利用をお断りする場合があります。
+              キャンセルはご利用日の前日20時まで無料です。それ以降のキャンセル、または無断キャンセルの場合、キャスト1名につき13,200円のキャンセル料を申し受けます。無断キャンセルの場合、今後のご利用をお断りする場合がございます。
             </Text>
             <Pressable style={styles.agreeRow} onPress={() => setAgreedToPolicy((v) => !v)}>
               <Ionicons

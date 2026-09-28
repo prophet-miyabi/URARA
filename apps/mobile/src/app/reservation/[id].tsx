@@ -128,7 +128,7 @@ export default function ReservationDetailScreen() {
         <Card style={styles.section}>
           <Text style={styles.sectionTitle}>キャンセルについて</Text>
           <Text style={styles.cancelNote}>
-            前日までのキャンセルは無料です。当日のキャンセルは女の子1名につき¥13,200のキャンセル料が発生します。
+            前日20時までのキャンセルは無料です。当日のキャンセル、または無断キャンセルの場合、キャスト1名につき¥13,200のキャンセル料が発生します。無断キャンセルの場合、今後のご利用をお断りする場合がございます。
           </Text>
         </Card>
       )}

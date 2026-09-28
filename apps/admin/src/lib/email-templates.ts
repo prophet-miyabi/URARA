@@ -75,6 +75,7 @@ export function renderLoginNotificationEmail(params: {
   fullName: string;
   whenLabel: string;
   device: string;
+  ipAddress?: string;
 }): string {
   return renderLayout({
     heading: "ログインのお知らせ",
@@ -84,6 +85,7 @@ export function renderLoginNotificationEmail(params: {
       ${detailTable([
         ["日時", escapeHtml(params.whenLabel)],
         ["ご利用端末", escapeHtml(params.device)],
+        ...(params.ipAddress ? ([["IPアドレス", escapeHtml(params.ipAddress)]] as Array<[string, string]>) : []),
       ])}
       ${p("お客様ご自身による操作の場合は、本メールを破棄していただいて問題ございません。")}
       ${p(
@@ -118,7 +120,7 @@ export function renderReservationReceivedEmail(params: {
       ${detailTable([
         ["予約番号", escapeHtml(params.reservationId)],
         ["ご希望日時", escapeHtml(params.requestedDatetimeLabel)],
-        ["ご利用店舗", escapeHtml(params.locationName)],
+        ["ご利用場所", escapeHtml(params.locationName)],
         ["ご利用人数", `お客様${params.guestCount}名 / キャスト${params.companionCount}名`],
         ["お支払い方法", escapeHtml(params.paymentMethodLabel)],
         ["予定お支払い合計", `<span style="color:#FFFFFF;font-weight:700;">${escapeHtml(params.estimatedTotalLabel)}</span>`],
@@ -157,12 +159,12 @@ export function renderReservationConfirmedEmail(params: {
       ${detailTable([
         ["予約番号", escapeHtml(params.reservationId)],
         ["ご予約日時", escapeHtml(params.requestedDatetimeLabel)],
-        ["ご利用店舗", escapeHtml(params.locationName) + (params.locationAddress ? `<br/><span style="color:#6C6C70;">${escapeHtml(params.locationAddress)}</span>` : "")],
+        ["ご利用場所", escapeHtml(params.locationName) + (params.locationAddress ? `<br/><span style="color:#6C6C70;">${escapeHtml(params.locationAddress)}</span>` : "")],
         ["ご利用人数", `お客様${params.guestCount}名 / キャスト${params.companionCount}名`],
         ["お支払い方法", escapeHtml(params.paymentMethodLabel)],
         ["お支払い合計", `<span style="color:#FFFFFF;font-weight:700;">${escapeHtml(params.totalLabel)}</span>`],
       ])}
-      ${p("ご予約時間の少し前に、手配されたキャストがご指定の店舗・お席へ伺います。到着の遅れやご変更等がございましたら、速やかにコンシェルジュデスクまでご連絡をお願いいたします。")}
+      ${p("ご予約時間の少し前に、手配されたキャストがご指定の場所・お席へ伺います。到着の遅れやご変更等がございましたら、速やかにコンシェルジュデスクまでご連絡をお願いいたします。")}
       ${CANCELLATION_POLICY_HTML}
       ${linkButton("マイページで予約詳細を確認", `${WEBSITE_URL}/reservation/${params.reservationId}`)}
       ${p("お客様にとって、思い出に残る素晴らしいひとときとなりますよう、心よりお祈り申し上げます。")}
