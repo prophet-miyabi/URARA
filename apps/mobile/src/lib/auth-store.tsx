@@ -99,7 +99,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: normalizeEmail(email),
       options: { shouldCreateUser: true },
     });
-    if (error) return { ok: false, error: 'コードの送信に失敗しました。しばらくしてから再度お試しください。' };
+    if (error) {
+      // Supabase側のエラー内容（レート制限やSMTP設定不備など）を握りつぶさず、
+      // 画面上にもそのまま出す。原因調査を素早く行うための一時的な計測。
+      console.error('signInWithOtp failed', error.status, error.code, error.message);
+      return { ok: false, error: `コードの送信に失敗しました（詳細: ${error.message}）` };
+    }
     return { ok: true };
   }, []);
 
