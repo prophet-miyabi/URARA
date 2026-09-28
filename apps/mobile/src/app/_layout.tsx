@@ -12,6 +12,7 @@ import { useFonts } from '@expo-google-fonts/playfair-display/useFonts';
 import { PlayfairDisplay_600SemiBold } from '@expo-google-fonts/playfair-display/600SemiBold';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display/700Bold';
 import { ReservationProvider } from '@/lib/reservation-store';
+import { AuthProvider } from '@/lib/auth-store';
 import { palette } from '@/components/ui';
 import { HeaderBackButton, HeaderHomeButton } from '@/components/header-nav-buttons';
 
@@ -28,43 +29,45 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ReservationProvider>
-        <StatusBar style="light" />
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: palette.bg },
-            headerTintColor: palette.silver,
-            headerTitleStyle: { color: palette.text },
-            contentStyle: { backgroundColor: palette.bg },
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="booking/index"
-            options={{
-              title: '予約する',
-              headerLeft: () => <HeaderBackButton />,
-              headerRight: () => <HeaderHomeButton />,
+      <AuthProvider>
+        <ReservationProvider>
+          <StatusBar style="light" />
+          <Stack
+            screenOptions={{
+              headerStyle: { backgroundColor: palette.bg },
+              headerTintColor: palette.silver,
+              headerTitleStyle: { color: palette.text },
+              contentStyle: { backgroundColor: palette.bg },
             }}
-          />
-          <Stack.Screen
-            name="pricing/index"
-            options={{
-              title: '料金・対応エリア',
-              headerLeft: () => <HeaderBackButton />,
-              headerRight: () => <HeaderHomeButton />,
-            }}
-          />
-          <Stack.Screen
-            name="reservation/[id]"
-            options={{
-              title: '予約状況',
-              headerLeft: () => <HeaderBackButton />,
-              headerRight: () => <HeaderHomeButton />,
-            }}
-          />
-        </Stack>
-      </ReservationProvider>
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="booking/index"
+              options={{
+                title: '予約する',
+                headerLeft: () => <HeaderBackButton />,
+                headerRight: () => <HeaderHomeButton />,
+              }}
+            />
+            <Stack.Screen
+              name="pricing/index"
+              options={{
+                title: '料金・対応エリア',
+                headerLeft: () => <HeaderBackButton />,
+                headerRight: () => <HeaderHomeButton />,
+              }}
+            />
+            <Stack.Screen
+              name="reservation/[id]"
+              options={{
+                title: '予約状況',
+                headerLeft: () => <HeaderBackButton />,
+                headerRight: () => <HeaderHomeButton />,
+              }}
+            />
+          </Stack>
+        </ReservationProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

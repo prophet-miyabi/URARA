@@ -1,7 +1,8 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useReservationStore } from '@/lib/reservation-store';
-import { STATUS_LABEL, type Reservation, type ReservationStatus } from '@/lib/types';
+import { useAuthStore } from '@/lib/auth-store';
+import { useRemoteReservations, type RemoteReservation } from '@/lib/use-remote-reservations';
+import { STATUS_LABEL, type ReservationStatus } from '@/lib/types';
 import { formatDateTimeJST } from '@/lib/format';
 import { Badge, PressableCard, palette } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
@@ -16,17 +17,18 @@ const STATUS_TONE: Record<ReservationStatus, 'neutral' | 'success' | 'warning' |
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const { reservations } = useReservationStore();
+  const { isLoggedIn } = useAuthStore();
+  const { reservations } = useRemoteReservations();
 
-  const renderItem = ({ item }: { item: Reservation }) => (
+  const renderItem = ({ item }: { item: RemoteReservation }) => (
     <PressableCard style={styles.item} onPress={() => router.push(`/reservation/${item.id}`)}>
       <View style={styles.itemHeader}>
-        <Text style={styles.itemVenue}>{item.location.name}</Text>
+        <Text style={styles.itemVenue}>{item.location_name}</Text>
         <Badge label={STATUS_LABEL[item.status]} tone={STATUS_TONE[item.status]} />
       </View>
-      <Text style={styles.itemMeta}>{formatDateTimeJST(item.requestedDatetime)}</Text>
+      <Text style={styles.itemMeta}>{formatDateTimeJST(item.requested_datetime)}</Text>
       <Text style={styles.itemMeta}>
-        女の子{item.companionCount}名 ・ {item.durationHours}時間
+        女の子{item.companion_count}名 ・ {item.duration_hours}時間
       </Text>
     </PressableCard>
   );
@@ -39,7 +41,11 @@ export default function HistoryScreen() {
       keyExtractor={(r) => r.id}
       renderItem={renderItem}
       ListHeaderComponent={<GlamourStrip title="予約履歴" />}
-      ListEmptyComponent={<Text style={styles.empty}>予約履歴はありません</Text>}
+      ListEmptyComponent={
+        <Text style={styles.empty}>
+          {isLoggedIn ? '予約履歴はありません' : 'ログインすると予約履歴が確認できます（マイページからログイン）'}
+        </Text>
+      }
     />
   );
 }

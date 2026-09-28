@@ -4,7 +4,9 @@ import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { calculatePrice } from '@companion-dispatch/pricing';
 import { useReservationStore } from '@/lib/reservation-store';
+import { useAuthStore } from '@/lib/auth-store';
 import { isValidEmail } from '@/lib/profile';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import type { BookingType, Location } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
 import { Card, PlatinumButton, SecondaryButton, palette } from '@/components/ui';
@@ -12,6 +14,7 @@ import { GlamourStrip } from '@/components/glamour';
 import { CalendarPicker, TimeWheelPicker, firstAvailableHour, isSameDay } from '@/components/calendar';
 import { LocationPicker } from '@/components/location-picker';
 import { EmailVerificationField } from '@/components/email-verification';
+import { ProfileForm } from '@/components/profile-form';
 
 const STEP_LABELS = ['ご予約内容', 'お支払い・確認'];
 const BODY_TYPES = ['スレンダー', '普通体型', 'グラマー', 'ぽっちゃり'];
@@ -19,8 +22,9 @@ const PERSONALITIES = ['朗らか', '上品', '社交的', '癒し', '気配り'
 
 export default function BookingScreen() {
   const router = useRouter();
-  const { savedLocations, recordLocationUsage, contactEmail, updateContactEmail, createReservation, verifiedEmail } =
+  const { savedLocations, recordLocationUsage, contactEmail, updateContactEmail, createReservation } =
     useReservationStore();
+  const { email: authEmail, isLoggedIn, needsProfile, profile } = useAuthStore();
   const [step, setStep] = useState(0);
 
   const [location, setLocation] = useState<Location | null>(null);
@@ -37,6 +41,8 @@ export default function BookingScreen() {
   const [preferenceNotes, setPreferenceNotes] = useState('');
   const [notes, setNotes] = useState('');
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [email, setEmail] = useState(contactEmail);
   const [emailTouched, setEmailTouched] = useState(false);
   const [lastSeenContactEmail, setLastSeenContactEmail] = useState(contactEmail);
@@ -63,8 +69,8 @@ export default function BookingScreen() {
   const bookingType: BookingType = selectedDate && isSameDay(selectedDate, new Date()) ? 'now' : 'scheduled';
 
   const canProceedStep0 = location !== null && scheduledIso !== null;
-  const isEmailVerified = verifiedEmail !== null && verifiedEmail === email.trim().toLowerCase();
-  const canSubmit = isValidEmail(email) && isEmailVerified && agreedToPolicy;
+  const isEmailVerified = isLoggedIn && authEmail === email.trim().toLowerCase();
+  const canSubmit = isValidEmail(email) && isEmailVerified && !needsProfile && agreedToPolicy;
 
   const handleSelectLocation = (loc: Location) => {
     setLocation(loc);
@@ -75,7 +81,7 @@ export default function BookingScreen() {
     setPersonalities((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]));
   };
 
-  const finalizeReservation = (trimmedEmail: string) => {
+  const finalizeReservation = async (trimmedEmail: string) => {
     if (!location || !requestedDatetime) return;
     const preferenceParts: string[] = [];
     if (wantsPreference && bodyType) preferenceParts.push(`体型: ${bodyType}`);
@@ -85,7 +91,41 @@ export default function BookingScreen() {
       wantsPreference && preferenceNotes.trim() ? `【服装・その他のご希望】${preferenceNotes.trim()}` : null;
     const combinedNotes = [preferenceSummary, preferenceNoteLine, notes.trim()].filter(Boolean).join('\n');
 
+    // 管理画面から見える唯一の予約記録なので、ここが失敗した場合は先に進めず
+    // 再試行してもらう（ローカルの予約作成・確認メールだけが成立して、運営側の
+    // データベースには何も残らない、という状態を避けるため）。
+    // 生成されたIDをローカルの予約オブジェクトにもそのまま使うことで、履歴・
+    // マイページ経由（Supabase由来のID）と予約直後の画面遷移（ローカルの
+    // キャッシュ）のどちらから開いても同じ予約を指せるようにする。
+    let reservationId: string | undefined;
+    if (isSupabaseConfigured && profile) {
+      const { data, error } = await supabase
+        .from('reservations')
+        .insert({
+          customer_id: profile.id,
+          location_name: location.name,
+          location_address: location.address,
+          location_lat: location.lat,
+          location_lng: location.lng,
+          booking_type: bookingType,
+          requested_datetime: requestedDatetime,
+          guest_count: guestCount,
+          companion_count: companionCount,
+          duration_hours: 2,
+          payment_method: 'cash',
+          notes: combinedNotes,
+        })
+        .select('id')
+        .single();
+      if (error || !data) {
+        setSubmitError('予約の送信に失敗しました。しばらくしてから再度お試しください。');
+        return;
+      }
+      reservationId = data.id;
+    }
+
     const reservation = createReservation({
+      id: reservationId,
       location,
       bookingType,
       requestedDatetime,
@@ -99,11 +139,14 @@ export default function BookingScreen() {
     router.replace(`/reservation/${reservation.id}`);
   };
 
-  const handleSubmit = () => {
-    if (!location || !requestedDatetime || !canSubmit) return;
+  const handleSubmit = async () => {
+    if (!location || !requestedDatetime || !canSubmit || submitting) return;
     const trimmedEmail = email.trim();
     if (trimmedEmail !== contactEmail) updateContactEmail(trimmedEmail);
-    finalizeReservation(trimmedEmail);
+    setSubmitting(true);
+    setSubmitError(null);
+    await finalizeReservation(trimmedEmail);
+    setSubmitting(false);
   };
 
   return (
@@ -226,6 +269,8 @@ export default function BookingScreen() {
             }}
           />
 
+          {needsProfile && <ProfileForm />}
+
           <Text style={styles.fieldLabel}>ご要望・連絡事項</Text>
           <TextInput
             style={styles.textArea}
@@ -259,6 +304,8 @@ export default function BookingScreen() {
               <Text style={styles.agreeText}>上記のキャンセルポリシーに同意します</Text>
             </Pressable>
           </View>
+
+          {submitError && <Text style={styles.emailError}>{submitError}</Text>}
         </View>
       )}
 
@@ -267,8 +314,8 @@ export default function BookingScreen() {
         {step < 1 && <PlatinumButton label="次へ" disabled={!canProceedStep0} onPress={() => setStep((s) => s + 1)} />}
         {step === 1 && (
           <PlatinumButton
-            label="この内容で申し込む"
-            disabled={!canSubmit}
+            label={submitting ? '送信中...' : 'この内容で申し込む'}
+            disabled={!canSubmit || submitting}
             onPress={handleSubmit}
           />
         )}

@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { calculatePrice } from '@companion-dispatch/pricing';
 import { useReservationStore } from '@/lib/reservation-store';
-import { STATUS_LABEL, STATUS_STEPS } from '@/lib/types';
+import { useAuthStore } from '@/lib/auth-store';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { STATUS_LABEL, STATUS_STEPS, type Reservation } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
 import { Badge, Card, palette } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
@@ -17,7 +20,51 @@ const STAGE_MESSAGE: Record<string, string> = {
 export default function ReservationDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getReservation } = useReservationStore();
-  const reservation = getReservation(id);
+  const { profile } = useAuthStore();
+  const localReservation = getReservation(id);
+  const [remoteReservation, setRemoteReservation] = useState<Reservation | null>(null);
+
+  // 予約直後の画面遷移はローカルキャッシュに乗っているので即座に表示できるが、
+  // 予約履歴・マイページ経由（別セッションで作られた予約）はローカルに無いため
+  // Supabaseから取得する。
+  useEffect(() => {
+    if (localReservation || !isSupabaseConfigured || !profile) return;
+    let cancelled = false;
+    supabase
+      .from('reservations')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        setRemoteReservation({
+          id: data.id,
+          location: {
+            placeId: '',
+            name: data.location_name,
+            address: data.location_address,
+            lat: data.location_lat ?? 0,
+            lng: data.location_lng ?? 0,
+          },
+          bookingType: data.booking_type,
+          requestedDatetime: data.requested_datetime,
+          guestCount: data.guest_count,
+          companionCount: data.companion_count,
+          durationHours: data.duration_hours,
+          travelFee: 0,
+          paymentMethod: data.payment_method,
+          notes: data.notes ?? '',
+          contactEmail: profile.email,
+          status: data.status,
+          createdAt: data.created_at,
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, localReservation, profile]);
+
+  const reservation = localReservation ?? remoteReservation;
 
   if (!reservation) {
     return (

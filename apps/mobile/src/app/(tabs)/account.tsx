@@ -1,31 +1,47 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useReservationStore } from '@/lib/reservation-store';
-import { isValidEmail } from '@/lib/profile';
+import { useAuthStore } from '@/lib/auth-store';
+import { useRemoteReservations } from '@/lib/use-remote-reservations';
 import { STATUS_LABEL } from '@/lib/types';
 import { formatDateTimeJST } from '@/lib/format';
 import { Badge, Card, PressableCard, SecondaryButton, palette } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
+import { EmailVerificationField } from '@/components/email-verification';
+import { ProfileForm } from '@/components/profile-form';
 
 export default function AccountScreen() {
   const router = useRouter();
-  const { contactEmail, updateContactEmail, reservations, verifiedEmail } = useReservationStore();
-  const [draft, setDraft] = useState(contactEmail);
-  const [lastSeenEmail, setLastSeenEmail] = useState(contactEmail);
+  const { isLoggedIn, needsProfile, profile, signOut } = useAuthStore();
+  const [email, setEmail] = useState('');
+  const { reservations } = useRemoteReservations();
+  const [editing, setEditing] = useState(false);
 
   const activeReservation = reservations.find((r) => r.status !== 'completed' && r.status !== 'cancelled');
-  const isEmailVerified = verifiedEmail !== null && verifiedEmail === contactEmail.trim().toLowerCase();
 
-  // contactEmail loads asynchronously from storage after mount; sync the draft
-  // once it arrives without clobbering anything the user has already typed.
-  if (contactEmail !== lastSeenEmail) {
-    setLastSeenEmail(contactEmail);
-    setDraft(contactEmail);
+  if (!isLoggedIn) {
+    return (
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <GlamourStrip title="マイページ" />
+        <Card style={styles.card}>
+          <Text style={styles.rowLabel}>ログイン</Text>
+          <Text style={styles.emailHint}>メールアドレスで認証コードを受け取り、ログインしてください</Text>
+          <EmailVerificationField email={email} onEmailChange={setEmail} />
+        </Card>
+      </ScrollView>
+    );
   }
 
-  const dirty = draft.trim() !== contactEmail;
-  const valid = draft.trim().length === 0 || isValidEmail(draft);
+  if (needsProfile) {
+    return (
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <GlamourStrip title="マイページ" />
+        <Card style={styles.card}>
+          <ProfileForm />
+        </Card>
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -38,35 +54,28 @@ export default function AccountScreen() {
             <Badge label={STATUS_LABEL[activeReservation.status]} tone="warning" />
           </View>
           <Text style={styles.activeCardBody}>
-            {formatDateTimeJST(activeReservation.requestedDatetime)} ・ 女の子{activeReservation.companionCount}名
+            {formatDateTimeJST(activeReservation.requested_datetime)} ・ 女の子{activeReservation.companion_count}名
           </Text>
         </PressableCard>
       )}
 
       <Card style={styles.card}>
-        <Text style={styles.rowLabel}>メールアドレス</Text>
-        <Text style={styles.emailHint}>予約の受付完了通知をお送りします</Text>
-        <TextInput
-          style={styles.input}
-          value={draft}
-          onChangeText={setDraft}
-          placeholder="you@example.com"
-          placeholderTextColor={palette.textFaint}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        {!valid && <Text style={styles.error}>メールアドレスの形式が正しくありません</Text>}
-        {dirty && valid && (
-          <SecondaryButton label="保存する" onPress={() => updateContactEmail(draft.trim())} />
-        )}
-      </Card>
-
-      <Card style={styles.row}>
-        <Text style={styles.rowLabel}>本人確認（メール）</Text>
-        {isEmailVerified ? (
-          <Badge label="確認済み" tone="success" />
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>お客様情報</Text>
+          <SecondaryButton label={editing ? '閉じる' : '編集'} onPress={() => setEditing((v) => !v)} />
+        </View>
+        {editing ? (
+          <ProfileForm
+            initialValues={{ fullName: profile!.fullName, phoneNumber: profile!.phoneNumber, address: profile!.address }}
+            onSaved={() => setEditing(false)}
+          />
         ) : (
-          <Badge label="未確認" tone="warning" />
+          <>
+            <Text style={styles.profileValue}>{profile!.fullName}</Text>
+            <Text style={styles.profileValue}>{profile!.phoneNumber}</Text>
+            <Text style={styles.profileValue}>{profile!.address}</Text>
+            <Text style={styles.emailHint}>{profile!.email}</Text>
+          </>
         )}
       </Card>
 
@@ -74,6 +83,8 @@ export default function AccountScreen() {
         <Text style={styles.rowLabel}>お問い合わせ</Text>
         <Text style={styles.rowValue}>予約や当日の内容についてのご相談はこちら</Text>
       </Card>
+
+      <SecondaryButton label="ログアウト" onPress={signOut} />
     </ScrollView>
   );
 }
@@ -90,15 +101,5 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 14, fontWeight: '600', color: palette.text },
   rowValue: { fontSize: 13, color: palette.textMuted, flexShrink: 1, textAlign: 'right' },
   emailHint: { fontSize: 11, color: palette.textFaint, marginTop: -4 },
-  input: {
-    borderWidth: 1,
-    borderColor: palette.cardBorder,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    color: palette.text,
-    backgroundColor: palette.bgElevated,
-  },
-  error: { color: palette.danger, fontSize: 11 },
+  profileValue: { fontSize: 14, color: palette.text },
 });

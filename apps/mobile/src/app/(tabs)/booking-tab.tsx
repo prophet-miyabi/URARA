@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useReservationStore } from '@/lib/reservation-store';
+import { useRemoteReservations } from '@/lib/use-remote-reservations';
 import { STATUS_LABEL, STATUS_STEPS, type ReservationStatus } from '@/lib/types';
 import { formatDateTimeJST } from '@/lib/format';
 import { Badge, PlatinumButton, PressableCard, palette } from '@/components/ui';
@@ -9,7 +9,7 @@ import { GlamourStrip } from '@/components/glamour';
 
 export default function BookingTabScreen() {
   const router = useRouter();
-  const { reservations } = useReservationStore();
+  const { reservations } = useRemoteReservations();
 
   const activeReservations = reservations.filter(
     (r) => r.status !== 'completed' && r.status !== 'cancelled'
@@ -35,10 +35,10 @@ export default function BookingTabScreen() {
             return (
               <PressableCard key={r.id} style={styles.card} onPress={() => router.push(`/reservation/${r.id}`)}>
                 <View style={styles.cardHeader}>
-                  <Text style={styles.cardVenue}>{r.location.name}</Text>
+                  <Text style={styles.cardVenue}>{r.location_name}</Text>
                   <Badge label={STATUS_LABEL[r.status]} tone="warning" />
                 </View>
-                <Text style={styles.cardMeta}>{formatDateTimeJST(r.requestedDatetime)}</Text>
+                <Text style={styles.cardMeta}>{formatDateTimeJST(r.requested_datetime)}</Text>
                 <View style={styles.stepDots}>
                   {STATUS_STEPS.map((s, i) => (
                     <View key={s} style={[styles.dot, i <= currentIndex && styles.dotActive]} />

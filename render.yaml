@@ -24,6 +24,10 @@ services:
         generateValue: true
       - key: EMAIL_VERIFICATION_SECRET
         generateValue: true
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
 
   - type: web
     name: urara-app
@@ -36,6 +40,10 @@ services:
       - key: EXPO_PUBLIC_GOOGLE_PLACES_API_KEY
         sync: false
       - key: EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: EXPO_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: EXPO_PUBLIC_SUPABASE_ANON_KEY
         sync: false
     routes:
       - type: rewrite

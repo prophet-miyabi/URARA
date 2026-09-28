@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyVerificationToken } from '@/lib/email-otp';
 import { corsHeaders, escapeHtml, sendEmail } from '@/lib/email';
 import { checkAndRecordReservationAttempt } from '@/lib/reservation-rate-limit';
+import { isSupabaseConfigured, supabaseAdmin } from '@/lib/supabase-admin';
 
 // 未設定の場合は運営宛の通知メールをスキップするだけで、顧客への受付完了メールは
 // 通常通り送信される（お客様体験を壊さないためのベストエフォート仕様）。
@@ -41,9 +42,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'missing reservation fields' }, { status: 400, headers: corsHeaders() });
   }
 
-  // メール認証が設定済みの環境では、認証済みメールアドレスであることを示す
-  // トークンが一致しない限り予約通知を受け付けない（本人確認の実効性を持たせる）。
-  if (process.env.EMAIL_VERIFICATION_SECRET) {
+  // 認証済みメールアドレスであることを示すトークンが一致しない限り予約通知を
+  // 受け付けない（本人確認の実効性を持たせる）。Supabase導入後はSupabaseの
+  // ログインセッション（JWT）を検証する。未設定の環境向けに、旧方式（独自
+  // メールOTPのHMACトークン）もフォールバックとして残している。
+  if (isSupabaseConfigured && supabaseAdmin) {
+    const token = body.verificationToken;
+    const { data, error } = token
+      ? await supabaseAdmin.auth.getUser(token)
+      : { data: { user: null }, error: null };
+    const tokenOk = !error && data.user?.email?.toLowerCase() === body.to.toLowerCase();
+    if (!tokenOk) {
+      return NextResponse.json(
+        { error: 'メールアドレスの認証が確認できません' },
+        { status: 401, headers: corsHeaders() }
+      );
+    }
+  } else if (process.env.EMAIL_VERIFICATION_SECRET) {
     const tokenOk = body.verificationToken
       ? await verifyVerificationToken(body.to, body.verificationToken)
       : false;

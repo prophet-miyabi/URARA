@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { isValidEmail } from '@/lib/profile';
-import { requestOtpCode, verifyOtpCode } from '@/lib/email-otp';
-import { useReservationStore } from '@/lib/reservation-store';
+import { useAuthStore } from '@/lib/auth-store';
 import { PlatinumButton, SecondaryButton, palette } from './ui';
 
 export function EmailVerificationField({
@@ -12,7 +11,7 @@ export function EmailVerificationField({
   email: string;
   onEmailChange: (value: string) => void;
 }) {
-  const { verifiedEmail, setVerification, clearVerification } = useReservationStore();
+  const { email: authEmail, sendLoginCode, verifyLoginCode } = useAuthStore();
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
@@ -21,7 +20,7 @@ export function EmailVerificationField({
   const [lastSeenEmail, setLastSeenEmail] = useState('');
 
   const trimmedEmail = email.trim().toLowerCase();
-  const isVerified = verifiedEmail !== null && verifiedEmail === trimmedEmail;
+  const isLoggedIn = authEmail !== null && authEmail === trimmedEmail;
 
   // メールアドレスの入力内容が変わるたびに、進行中のコード入力状態はリセットする
   // (レンダー中に直接setStateする方式。React docsが推奨する「前回値との比較で
@@ -37,7 +36,7 @@ export function EmailVerificationField({
     if (!isValidEmail(email) || sending) return;
     setSending(true);
     setError(null);
-    const result = await requestOtpCode(trimmedEmail);
+    const result = await sendLoginCode(trimmedEmail);
     setSending(false);
     if (!result.ok) {
       setError(result.error);
@@ -50,40 +49,32 @@ export function EmailVerificationField({
     if (code.trim().length !== 6 || verifying) return;
     setVerifying(true);
     setError(null);
-    const result = await verifyOtpCode(trimmedEmail, code.trim());
+    const result = await verifyLoginCode(trimmedEmail, code.trim());
     setVerifying(false);
     if (!result.ok) {
       setError(result.error);
       return;
     }
-    setVerification(trimmedEmail, result.token);
     setCodeSent(false);
     setCode('');
-  };
-
-  const handleChangeEmail = (value: string) => {
-    onEmailChange(value);
-    if (verifiedEmail && value.trim().toLowerCase() !== verifiedEmail) {
-      clearVerification();
-    }
   };
 
   return (
     <View style={styles.container}>
       <TextInput
-        style={[styles.input, isVerified && styles.inputVerified]}
+        style={[styles.input, isLoggedIn && styles.inputVerified]}
         value={email}
-        onChangeText={handleChangeEmail}
+        onChangeText={onEmailChange}
         placeholder="you@example.com"
         placeholderTextColor={palette.textFaint}
         autoCapitalize="none"
         keyboardType="email-address"
-        editable={!isVerified}
+        editable={!isLoggedIn}
       />
 
-      {isVerified ? (
+      {isLoggedIn ? (
         <View style={styles.verifiedBadge}>
-          <Text style={styles.verifiedBadgeText}>✓ 認証済み</Text>
+          <Text style={styles.verifiedBadgeText}>✓ ログイン済み</Text>
         </View>
       ) : (
         <>
