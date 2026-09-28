@@ -12,6 +12,7 @@ const PUBLIC_PATHS = [
   "/api/customer",
   "/api/notify-account-created",
   "/api/notify-login",
+  "/api/auth-send-email-hook",
 ];
 
 export async function middleware(request: NextRequest) {

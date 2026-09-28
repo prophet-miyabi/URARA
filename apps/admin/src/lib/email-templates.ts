@@ -52,6 +52,23 @@ const CANCELLATION_POLICY_HTML = `
   </div>`;
 
 // ------------------------------------------------------------------
+// 0. ログイン認証コード（Supabase Auth Send Email Hookから呼ばれる）
+// ------------------------------------------------------------------
+export function renderOtpEmail(params: { code: string; actionType: string }): string {
+  const heading = params.actionType === "signup" ? "ご登録の確認コード" : "ログイン認証コード";
+  return renderLayout({
+    heading,
+    bodyHtml: `
+      ${p("以下の認証コードを、アプリの画面にご入力ください。")}
+      <p style="text-align:center;margin:24px 0;">
+        <span style="display:inline-block;font-size:32px;font-weight:700;letter-spacing:8px;color:#FFFFFF;background:#1C1C1E;border-radius:10px;padding:16px 28px;">${escapeHtml(params.code)}</span>
+      </p>
+      ${p("このコードには有効期限があります。お心当たりがない場合は、お手数ですが本メールを破棄してください。")}
+    `,
+  });
+}
+
+// ------------------------------------------------------------------
 // 1. アカウント作成完了メール
 // ------------------------------------------------------------------
 export function renderAccountCreatedEmail(params: { fullName: string }): string {
