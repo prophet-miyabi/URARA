@@ -10,6 +10,8 @@ const PUBLIC_PATHS = [
   "/api/send-confirmation",
   "/api/create-payment-intent",
   "/api/customer",
+  "/api/notify-account-created",
+  "/api/notify-login",
 ];
 
 export async function middleware(request: NextRequest) {

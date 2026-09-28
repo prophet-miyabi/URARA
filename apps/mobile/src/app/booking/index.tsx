@@ -135,6 +135,7 @@ export default function BookingScreen() {
       paymentMethod: 'cash',
       notes: combinedNotes,
       contactEmail: trimmedEmail,
+      fullName: profile?.fullName,
     });
     router.replace(`/reservation/${reservation.id}`);
   };

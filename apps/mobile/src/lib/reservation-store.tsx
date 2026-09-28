@@ -19,6 +19,7 @@ export interface NewReservationInput {
   paymentMethod: Reservation['paymentMethod'];
   notes: string;
   contactEmail: string;
+  fullName?: string;
 }
 
 interface Store {
@@ -53,7 +54,7 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const createReservation = useCallback((input: NewReservationInput) => {
-    const { id, ...rest } = input;
+    const { id, fullName, ...rest } = input;
     const reservation: Reservation = {
       id: id ?? `r${Date.now()}`,
       travelFee: 0,
@@ -66,7 +67,7 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
     // 取得して使う。取得は非同期だが、予約オブジェクト自体は同期的に返す必要が
     // あるため、メール送信は結果を待たずに（ベストエフォートで）実行する。
     supabase.auth.getSession().then(({ data }) => {
-      sendReservationReceivedEmail(reservation, data.session?.access_token);
+      sendReservationReceivedEmail(reservation, fullName, data.session?.access_token);
     });
     return reservation;
   }, []);

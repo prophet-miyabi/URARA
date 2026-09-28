@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { verifyVerificationToken } from '@/lib/email-otp';
 import { corsHeaders, escapeHtml, sendEmail } from '@/lib/email';
+import { renderReservationReceivedEmail } from '@/lib/email-templates';
 import { checkAndRecordReservationAttempt } from '@/lib/reservation-rate-limit';
 import { isSupabaseConfigured, supabaseAdmin } from '@/lib/supabase-admin';
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = { cash: '現金', card: 'カード' };
 
 // 未設定の場合は運営宛の通知メールをスキップするだけで、顧客への受付完了メールは
 // 通常通り送信される（お客様体験を壊さないためのベストエフォート仕様）。
@@ -16,12 +19,14 @@ export async function OPTIONS() {
 
 interface RequestBody {
   to: string;
+  fullName?: string;
   reservationId: string;
   locationName: string;
   requestedDatetimeLabel: string;
   guestCount: number;
   companionCount: number;
   estimatedTotalLabel: string;
+  paymentMethod?: string;
   notes?: string;
   verificationToken?: string;
   bookingType?: 'now' | 'scheduled';
@@ -82,8 +87,18 @@ export async function POST(request: Request) {
 
   const customerSent = await sendEmail(
     body.to,
-    '【URARA】ご予約リクエストを受け付けました',
-    renderConfirmationEmail(body)
+    '【URARA】ご予約リクエストを承りました（現在手配中）',
+    renderReservationReceivedEmail({
+      fullName: body.fullName || 'お客',
+      reservationId: body.reservationId,
+      locationName: body.locationName,
+      requestedDatetimeLabel: body.requestedDatetimeLabel,
+      guestCount: body.guestCount,
+      companionCount: body.companionCount,
+      estimatedTotalLabel: body.estimatedTotalLabel,
+      paymentMethodLabel: PAYMENT_METHOD_LABEL[body.paymentMethod ?? 'cash'] ?? '現金',
+      notes: body.notes,
+    })
   );
 
   if (!customerSent) {
@@ -98,36 +113,6 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ sent: true }, { headers: corsHeaders() });
-}
-
-function renderConfirmationEmail(body: RequestBody): string {
-  return `
-  <div style="background:#050505;padding:32px 16px;font-family:'Hiragino Sans','Yu Gothic',sans-serif;">
-    <div style="max-width:480px;margin:0 auto;background:#121212;border:1px solid #2A2A2A;border-radius:14px;padding:28px;color:#F5F5F7;">
-      <p style="letter-spacing:4px;color:#E0E0E0;font-size:13px;text-align:center;margin:0 0 4px;">URARA</p>
-      <h1 style="font-size:18px;text-align:center;margin:0 0 20px;color:#F5F5F7;">ご予約リクエストを受け付けました</h1>
-      <p style="font-size:13px;line-height:1.8;color:#8E8E93;">
-        ご予約のお申込みありがとうございます。内容を確認のうえ、手配が整い次第あらためて「予約確定」のご連絡をいたします。
-        <strong style="color:#F5F5F7;">この時点ではまだ予約は確定しておりません。</strong>
-      </p>
-      <table style="width:100%;margin-top:16px;border-collapse:collapse;font-size:13px;">
-        <tr><td style="color:#6C6C70;padding:6px 0;">予約番号</td><td style="text-align:right;color:#F5F5F7;">${escapeHtml(body.reservationId)}</td></tr>
-        <tr><td style="color:#6C6C70;padding:6px 0;">場所</td><td style="text-align:right;color:#F5F5F7;">${escapeHtml(body.locationName)}</td></tr>
-        <tr><td style="color:#6C6C70;padding:6px 0;">日時</td><td style="text-align:right;color:#F5F5F7;">${escapeHtml(body.requestedDatetimeLabel)}</td></tr>
-        <tr><td style="color:#6C6C70;padding:6px 0;">人数</td><td style="text-align:right;color:#F5F5F7;">お客様${body.guestCount}名 ・ 女の子${body.companionCount}名</td></tr>
-        <tr><td style="color:#6C6C70;padding:6px 0;">料金目安</td><td style="text-align:right;color:#FFFFFF;font-weight:700;">${escapeHtml(body.estimatedTotalLabel)}</td></tr>
-      </table>
-      ${
-        body.notes
-          ? `<p style="font-size:12px;color:#6C6C70;margin-top:16px;">ご要望</p>
-      <p style="font-size:13px;color:#F5F5F7;white-space:pre-wrap;margin-top:4px;">${escapeHtml(body.notes)}</p>`
-          : ''
-      }
-      <p style="font-size:11px;color:#6C6C70;margin-top:24px;line-height:1.6;">
-        本メールに心当たりがない場合は、お手数ですが破棄していただきますようお願いいたします。
-      </p>
-    </div>
-  </div>`;
 }
 
 function renderOperatorEmail(body: RequestBody): string {

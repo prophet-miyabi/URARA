@@ -1,5 +1,8 @@
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_ADDRESS = process.env.NOTIFY_FROM_ADDRESS ?? "URARA <onboarding@resend.dev>";
+// 送信元(info@urara.tech)は送信専用で受信ボックスが無いため、お客様が返信すると
+// 運営に届くよう、返信先だけ運営の実メールアドレスに向ける。
+const OPERATOR_NOTIFY_EMAIL = process.env.OPERATOR_NOTIFY_EMAIL;
 
 export function isEmailConfigured(): boolean {
   return Boolean(RESEND_API_KEY);
@@ -24,7 +27,13 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
       Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from: FROM_ADDRESS, to: [to], subject, html }),
+    body: JSON.stringify({
+      from: FROM_ADDRESS,
+      to: [to],
+      subject,
+      html,
+      ...(OPERATOR_NOTIFY_EMAIL ? { reply_to: OPERATOR_NOTIFY_EMAIL } : {}),
+    }),
   });
   if (!res.ok) {
     const errorText = await res.text().catch(() => "");

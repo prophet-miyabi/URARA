@@ -1,6 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Platform } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
+import { sendAccountCreatedEmail, sendLoginNotificationEmail } from './notify';
 import { isSupabaseConfigured, supabase } from './supabase';
+
+const DEVICE_LABEL = Platform.OS === 'web' ? 'ウェブブラウザ' : Platform.OS === 'ios' ? 'iPhone/iPad' : 'Androidデバイス';
 
 export interface CustomerProfile {
   id: string;
@@ -65,10 +69,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       if (newSession) {
         loadProfile(newSession.user.id);
+        // SIGNED_INは実際のログイン操作（OTP認証成功）でのみ発火する。アプリ起動時の
+        // セッション復元（INITIAL_SESSION）やトークン自動更新では通知しない。
+        if (event === 'SIGNED_IN') {
+          supabase
+            .from('customers')
+            .select('full_name')
+            .eq('id', newSession.user.id)
+            .maybeSingle()
+            .then(({ data }) => {
+              sendLoginNotificationEmail(data?.full_name || 'お客', DEVICE_LABEL, newSession.access_token);
+            });
+        }
       } else {
         setProfile(null);
       }
@@ -103,6 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const saveProfile = useCallback(
     async (input: { fullName: string; phoneNumber: string; address: string }): Promise<AuthResult> => {
       if (!session) return { ok: false, error: 'ログインが必要です' };
+      const isNewProfile = profile === null;
       const { error } = await supabase.from('customers').upsert({
         id: session.user.id,
         full_name: input.fullName.trim(),
@@ -112,9 +129,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       if (error) return { ok: false, error: '保存に失敗しました。しばらくしてから再度お試しください。' };
       await loadProfile(session.user.id);
+      if (isNewProfile) {
+        sendAccountCreatedEmail(input.fullName.trim(), session.access_token);
+      }
       return { ok: true };
     },
-    [session, loadProfile]
+    [session, profile, loadProfile]
   );
 
   const signOut = useCallback(async () => {
