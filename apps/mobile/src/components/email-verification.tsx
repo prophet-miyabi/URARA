@@ -46,7 +46,7 @@ export function EmailVerificationField({
   };
 
   const handleVerify = async () => {
-    if (code.trim().length !== 6 || verifying) return;
+    if (code.trim().length === 0 || verifying) return;
     setVerifying(true);
     setError(null);
     const result = await verifyLoginCode(trimmedEmail, code.trim());
@@ -92,20 +92,20 @@ export function EmailVerificationField({
 
           {isValidEmail(email) && codeSent && (
             <View style={styles.verifyBlock}>
-              <Text style={styles.hint}>届いた6桁のコードを入力してください</Text>
+              <Text style={styles.hint}>届いたコードを入力してください</Text>
               <TextInput
                 style={styles.codeInput}
                 value={code}
-                onChangeText={(v) => setCode(v.replace(/[^0-9]/g, '').slice(0, 6))}
-                placeholder="123456"
+                onChangeText={(v) => setCode(v.replace(/[^0-9]/g, '').slice(0, 10))}
+                placeholder="12345678"
                 placeholderTextColor={palette.textFaint}
                 keyboardType="number-pad"
-                maxLength={6}
+                maxLength={10}
               />
               <PlatinumButton
                 label={verifying ? '確認中...' : '確認する'}
                 onPress={handleVerify}
-                disabled={verifying || code.trim().length !== 6}
+                disabled={verifying || code.trim().length === 0}
               />
               <SecondaryButton
                 label={sending ? '送信中...' : 'コードを再送信'}
