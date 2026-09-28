@@ -6,8 +6,10 @@ services:
     buildCommand: npm install && npm run build --workspace=apps/admin
     startCommand: npm run start --workspace=apps/admin
     envVars:
+      # @supabase/supabase-jsが内部で使うWebSocket機能はNode 22以降で
+      # ネイティブ対応。20.xだとビルド/実行時にエラーになる。
       - key: NODE_VERSION
-        value: 20.18.0
+        value: 22.11.0
       - key: RESEND_API_KEY
         sync: false
       - key: NOTIFY_FROM_ADDRESS
@@ -35,8 +37,10 @@ services:
     buildCommand: npm install && npm run build:web --workspace=apps/mobile
     staticPublishPath: apps/mobile/dist
     envVars:
+      # @supabase/supabase-jsが内部で使うWebSocket機能はNode 22以降で
+      # ネイティブ対応。20.xだとexpo exportのビルドが失敗する。
       - key: NODE_VERSION
-        value: 20.18.0
+        value: 22.11.0
       - key: EXPO_PUBLIC_GOOGLE_PLACES_API_KEY
         sync: false
       - key: EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY
