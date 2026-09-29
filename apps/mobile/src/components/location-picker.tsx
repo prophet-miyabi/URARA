@@ -139,7 +139,11 @@ export function LocationPicker({
         </View>
       )}
 
-      {isMapConfigured && <MapPicker location={value} onChange={onChange} />}
+      {/* 検索が実行時に失敗する状態(searchFailed)は、Google Maps Platform側の
+          請求設定などマップにも波及する問題であることが多い。地図だけ表示して
+          Google純正の「For development purposes only」ダイアログをお客様に
+          見せてしまうより、非表示にした方が混乱が少ない。 */}
+      {isMapConfigured && !searchFailed && <MapPicker location={value} onChange={onChange} />}
     </View>
   );
 }
