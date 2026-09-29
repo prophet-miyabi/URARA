@@ -16,25 +16,36 @@ export function corsHeaders() {
 // 送信元(info@urara.tech)は送信専用で受信ボックスが無いため、お客様が返信すると
 // 運営に届くよう、返信先を運営の通知先一覧(replyTo)に向ける。呼び出し側が
 // notification-settings.tsのgetOperatorEmails()で取得した一覧を渡す想定。
+//
+// Resend側が万一無応答になった場合に接続を握ったまま残り続けないよう、
+// タイムアウトを設ける（/api/auth-send-email-hookはSupabase Auth側の
+// 5秒制限下で呼ばれるため、無制限に待つと接続を食いつぶしてしまう）。
 export async function sendEmail(to: string, subject: string, html: string, replyTo?: string[]): Promise<boolean> {
   if (!RESEND_API_KEY) {
     console.warn("RESEND_API_KEY is not configured; skipping email send", to);
     return false;
   }
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: FROM_ADDRESS,
-      to: [to],
-      subject,
-      html,
-      ...(replyTo && replyTo.length > 0 ? { reply_to: replyTo } : {}),
-    }),
-  });
+  let res: Response;
+  try {
+    res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: [to],
+        subject,
+        html,
+        ...(replyTo && replyTo.length > 0 ? { reply_to: replyTo } : {}),
+      }),
+      signal: AbortSignal.timeout(4000),
+    });
+  } catch (err) {
+    console.error("Resend send errored", to, err);
+    return false;
+  }
   if (!res.ok) {
     const errorText = await res.text().catch(() => "");
     console.error("Resend send failed", to, res.status, errorText);
