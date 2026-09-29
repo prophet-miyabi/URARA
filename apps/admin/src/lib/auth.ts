@@ -61,9 +61,24 @@ function constantTimeEquals(a: string, b: string): boolean {
   return mismatch === 0;
 }
 
+// 複数人で管理画面を確認できるよう、2組までの管理者アカウントを許可する。
+// ユーザー数が増える見込みがない小規模運用なので、DBのユーザーテーブルは
+// 作らず、既存の環境変数ベースの仕組みをそのまま2組に広げるだけにしている。
+const ADMIN_ACCOUNTS = [
+  { username: process.env.ADMIN_USERNAME, password: process.env.ADMIN_PASSWORD },
+  { username: process.env.ADMIN_USERNAME_2, password: process.env.ADMIN_PASSWORD_2 },
+];
+
+export function hasAnyAdminAccountConfigured(): boolean {
+  return ADMIN_ACCOUNTS.some((account) => account.username && account.password);
+}
+
 export function checkCredentials(username: string, password: string): boolean {
-  const expectedUsername = process.env.ADMIN_USERNAME;
-  const expectedPassword = process.env.ADMIN_PASSWORD;
-  if (!expectedUsername || !expectedPassword) return false;
-  return constantTimeEquals(username, expectedUsername) && constantTimeEquals(password, expectedPassword);
+  return ADMIN_ACCOUNTS.some(
+    (account) =>
+      account.username &&
+      account.password &&
+      constantTimeEquals(username, account.username) &&
+      constantTimeEquals(password, account.password)
+  );
 }
