@@ -18,10 +18,8 @@ const FILTERS: Array<{ value: ReservationStatus | "all"; label: string }> = [
 ];
 
 export default function ReservationsQueuePage() {
-  const { reservations, venues } = useReservationStore();
+  const { reservations, loading } = useReservationStore();
   const [filter, setFilter] = useState<ReservationStatus | "all">("all");
-
-  const venueName = (id: string) => venues.find((v) => v.id === id)?.name ?? "(不明な店舗)";
 
   const filtered = useMemo(() => {
     const list = filter === "all" ? reservations : reservations.filter((r) => r.status === filter);
@@ -55,7 +53,11 @@ export default function ReservationsQueuePage() {
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="rounded-lg border border-neutral-200 bg-white px-4 py-8 text-center text-neutral-400">
+          読み込み中...
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="rounded-lg border border-neutral-200 bg-white px-4 py-8 text-center text-neutral-400">
           該当する予約はありません
         </div>
@@ -64,7 +66,7 @@ export default function ReservationsQueuePage() {
           {/* Mobile: card list */}
           <div className="flex flex-col gap-3 md:hidden">
             {filtered.map((r) => (
-              <ReservationCard key={r.id} reservation={r} venueName={venueName(r.venueId)} />
+              <ReservationCard key={r.id} reservation={r} />
             ))}
           </div>
 
@@ -106,7 +108,7 @@ export default function ReservationsQueuePage() {
                         </Link>
                         <div className="text-xs text-neutral-400">{r.contactPhone}</div>
                       </td>
-                      <td className="px-4 py-3">{venueName(r.venueId)}</td>
+                      <td className="px-4 py-3">{r.locationName}</td>
                       <td className="px-4 py-3 whitespace-nowrap">{formatDateTimeJST(r.requestedDatetime)}</td>
                       <td className="px-4 py-3">
                         客{r.guestCount}名 / 女の子{r.companionCount}名
@@ -127,7 +129,7 @@ export default function ReservationsQueuePage() {
   );
 }
 
-function ReservationCard({ reservation: r, venueName }: { reservation: Reservation; venueName: string }) {
+function ReservationCard({ reservation: r }: { reservation: Reservation }) {
   const price = calculatePrice({
     companionCount: r.companionCount,
     durationHours: r.durationHours,
@@ -150,7 +152,7 @@ function ReservationCard({ reservation: r, venueName }: { reservation: Reservati
       <p className="font-medium text-neutral-900">{r.contactName}</p>
       <p className="text-xs text-neutral-400">{r.contactPhone}</p>
       <div className="mt-2 space-y-0.5 text-sm text-neutral-600">
-        <p>{venueName}</p>
+        <p>{r.locationName}</p>
         <p>{formatDateTimeJST(r.requestedDatetime)}</p>
         <p>
           客{r.guestCount}名 / 女の子{r.companionCount}名 ・ {formatYen(price.totalPrice)}

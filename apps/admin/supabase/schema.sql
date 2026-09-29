@@ -31,6 +31,9 @@ create table if not exists public.reservations (
 
 create index if not exists reservations_customer_id_idx on public.reservations(customer_id);
 
+-- 管理画面の出張料編集機能で使う。当初のスキーマに無かったため後から追加。
+alter table public.reservations add column if not exists travel_fee integer not null default 0;
+
 -- Row Level Security: 本人の行だけ読み書きできる。管理画面はservice_roleキー
 -- （RLSを無視する特権キー）でアクセスするため、ここでは顧客側の権限だけを絞る。
 alter table public.customers enable row level security;

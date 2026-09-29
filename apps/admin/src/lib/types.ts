@@ -41,27 +41,14 @@ export interface Companion {
   status: "active" | "inactive";
 }
 
-export interface Customer {
-  id: string;
-  fullName: string;
-  phoneNumber: string;
-  identityVerificationStatus: "unverified" | "pending_review" | "verified" | "rejected";
-}
-
-export interface StatusHistoryEntry {
-  fromStatus: ReservationStatus | null;
-  toStatus: ReservationStatus;
-  changedBy: string;
-  changedAt: string;
-  note?: string;
-}
-
 export interface Reservation {
   id: string;
-  customerId: string | null;
+  customerId: string;
   contactName: string;
   contactPhone: string;
-  venueId: string;
+  contactEmail: string;
+  locationName: string;
+  locationAddress: string;
   bookingType: BookingType;
   requestedDatetime: string;
   guestCount: number;
@@ -71,8 +58,5 @@ export interface Reservation {
   paymentMethod: PaymentMethod;
   notes: string;
   status: ReservationStatus;
-  confirmedAt: string | null;
-  assignedCompanionIds: string[];
-  statusHistory: StatusHistoryEntry[];
-  createdByAdmin: boolean;
+  createdAt: string;
 }

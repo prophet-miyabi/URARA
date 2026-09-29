@@ -23,29 +23,18 @@ export function ReservationDetail({ id }: { id: string }) {
         <Link href="/" className="text-sm text-neutral-500 hover:underline">
           ← 予約キューに戻る
         </Link>
-        <p className="mt-4 text-neutral-500">予約が見つかりませんでした。</p>
+        <p className="mt-4 text-neutral-500">
+          {store.loading ? "読み込み中..." : "予約が見つかりませんでした。"}
+        </p>
       </div>
     );
   }
-
-  const venue = store.venues.find((v) => v.id === reservation.venueId);
-  const customer = reservation.customerId
-    ? store.customers.find((c) => c.id === reservation.customerId)
-    : null;
 
   const price = calculatePrice({
     companionCount: reservation.companionCount,
     durationHours: reservation.durationHours,
     travelFee: reservation.travelFee,
   });
-
-  const toggleCompanion = (companionId: string) => {
-    const current = reservation.assignedCompanionIds;
-    const next = current.includes(companionId)
-      ? current.filter((cid) => cid !== companionId)
-      : [...current, companionId];
-    store.assignCompanions(reservation.id, next);
-  };
 
   const commitTravelFee = () => {
     if (travelFeeInput === null) return;
@@ -67,12 +56,11 @@ export function ReservationDetail({ id }: { id: string }) {
 
   const isTerminal = reservation.status === "cancelled" || reservation.status === "completed";
   const canMoveToArranging = !isTerminal && reservation.status === "received";
-  const canConfirm =
-    !isTerminal &&
-    reservation.status === "arranging" &&
-    reservation.assignedCompanionIds.length >= reservation.companionCount;
+  const canConfirm = !isTerminal && reservation.status === "arranging";
   const canComplete = !isTerminal && reservation.status === "confirmed";
   const canCancel = !isTerminal;
+
+  const setStatus = (status: ReservationStatus) => store.setStatus(reservation.id, status);
 
   return (
     <div className="max-w-3xl">
@@ -119,15 +107,8 @@ export function ReservationDetail({ id }: { id: string }) {
             <h2 className="mb-3 text-sm font-bold text-neutral-500">予約内容</h2>
             <dl className="space-y-2 text-sm">
               <Row label="お客様" value={`${reservation.contactName} (${reservation.contactPhone})`} />
-              <Row
-                label="会員情報"
-                value={
-                  customer
-                    ? `会員 / 本人確認: ${idLabel(customer.identityVerificationStatus)}`
-                    : "非会員（電話予約）"
-                }
-              />
-              <Row label="店舗" value={venue?.name ?? "-"} />
+              <Row label="メールアドレス" value={reservation.contactEmail || "-"} />
+              <Row label="場所" value={`${reservation.locationName}\n${reservation.locationAddress}`} />
               <Row label="予約種別" value={BOOKING_TYPE_LABEL[reservation.bookingType]} />
               <Row label="日時" value={formatDateTimeJST(reservation.requestedDatetime)} />
               <Row label="お客様人数" value={`${reservation.guestCount}名`} />
@@ -180,92 +161,36 @@ export function ReservationDetail({ id }: { id: string }) {
               </div>
             </dl>
           </section>
-
-          <section className="rounded-lg border border-neutral-200 bg-white p-4">
-            <h2 className="mb-3 text-sm font-bold text-neutral-500">ステータス履歴</h2>
-            <ol className="space-y-2 text-sm">
-              {reservation.statusHistory.map((h, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="mt-0.5 text-neutral-300">•</span>
-                  <div>
-                    <span className="font-medium">{STATUS_LABEL[h.toStatus]}</span>
-                    <span className="ml-2 text-xs text-neutral-400">
-                      {formatDateTimeJST(h.changedAt)} / {h.changedBy}
-                    </span>
-                    {h.note && <div className="text-xs text-neutral-500">{h.note}</div>}
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </section>
         </div>
 
         {/* Right column: actions */}
         <div className="space-y-6">
           <section className="rounded-lg border border-neutral-200 bg-white p-4">
-            <h2 className="mb-3 text-sm font-bold text-neutral-500">女の子の割当</h2>
-            <ul className="space-y-2">
-              {store.companions.map((c) => {
-                const checked = reservation.assignedCompanionIds.includes(c.id);
-                return (
-                  <li key={c.id}>
-                    <label
-                      className={`flex items-center justify-between rounded-md border px-3 py-2 text-sm ${
-                        c.status === "inactive" ? "opacity-40" : ""
-                      } ${checked ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"}`}
-                    >
-                      <span>
-                        <input
-                          type="checkbox"
-                          className="mr-2"
-                          checked={checked}
-                          disabled={c.status === "inactive"}
-                          onChange={() => toggleCompanion(c.id)}
-                        />
-                        {c.fullName}
-                      </span>
-                      <span className="text-xs text-neutral-400">{c.phoneNumber}</span>
-                    </label>
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="mt-2 text-xs text-neutral-400">
-              {reservation.assignedCompanionIds.length} / {reservation.companionCount} 名 手配済み
-            </p>
-          </section>
-
-          <section className="rounded-lg border border-neutral-200 bg-white p-4">
             <h2 className="mb-3 text-sm font-bold text-neutral-500">ステータス操作</h2>
             <div className="flex flex-col gap-2">
-              <ActionButton disabled={!canMoveToArranging} onClick={() => store.setStatus(reservation.id, "arranging")}>
+              <ActionButton disabled={!canMoveToArranging} onClick={() => setStatus("arranging")}>
                 手配中にする
               </ActionButton>
-              <ActionButton primary disabled={!canConfirm} onClick={() => store.setStatus(reservation.id, "confirmed")}>
+              <ActionButton primary disabled={!canConfirm} onClick={() => setStatus("confirmed")}>
                 確定して通知送信
               </ActionButton>
-              <ActionButton disabled={!canComplete} onClick={() => store.setStatus(reservation.id, "completed")}>
+              <ActionButton disabled={!canComplete} onClick={() => setStatus("completed")}>
                 利用終了にする
               </ActionButton>
-              <ActionButton
-                danger
-                disabled={!canCancel}
-                onClick={() => store.setStatus(reservation.id, "cancelled", "運営操作によるお断り/キャンセル")}
-              >
+              <ActionButton danger disabled={!canCancel} onClick={() => setStatus("cancelled")}>
                 お断り・キャンセル
               </ActionButton>
             </div>
             {reservation.status === "received" && (
               <p className="mt-2 text-xs text-neutral-400">
-                まず「手配中にする」で手配を開始してください。
+                まず「手配中にする」で手配を開始してください。女の子の手配自体は現状お電話・LINE等、システム外で行ってください。
               </p>
             )}
-            {reservation.status === "arranging" &&
-              reservation.assignedCompanionIds.length < reservation.companionCount && (
-                <p className="mt-2 text-xs text-amber-600">
-                  「確定」には希望人数分の女の子を割り当ててください。
-                </p>
-              )}
+            {reservation.status === "arranging" && (
+              <p className="mt-2 text-xs text-neutral-400">
+                手配が整ったら「確定して通知送信」を押すと、お客様に確定メールが送信されます。
+              </p>
+            )}
           </section>
         </div>
       </div>
@@ -277,13 +202,9 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <dt className="text-neutral-500">{label}</dt>
-      <dd className="text-right font-medium">{value}</dd>
+      <dd className="text-right font-medium whitespace-pre-line">{value}</dd>
     </div>
   );
-}
-
-function idLabel(status: string) {
-  return { unverified: "未確認", pending_review: "審査中", verified: "確認済み", rejected: "却下" }[status] ?? status;
 }
 
 function ActionButton({
