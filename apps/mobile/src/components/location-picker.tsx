@@ -19,9 +19,14 @@ export function LocationPicker({
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // APIキー自体は設定されていても、請求設定などサーバー側の事情で検索が
+  // 実行時に失敗することがある。その場合も手入力に切り替えられないと
+  // 予約自体が完全に止まってしまうため、キー未設定時と同じ扱いにする。
+  const [searchFailed, setSearchFailed] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const queryTooShort = !isPlacesApiConfigured || query.trim().length < 2;
+  const manualModeActive = !isPlacesApiConfigured || searchFailed;
+  const queryTooShort = manualModeActive || query.trim().length < 2;
   const visibleSuggestions = queryTooShort ? [] : suggestions;
 
   useEffect(() => {
@@ -34,7 +39,8 @@ export function LocationPicker({
         const results = await searchPlaces(query);
         setSuggestions(results);
       } catch {
-        setError('検索に失敗しました。しばらくしてから再度お試しください。');
+        setError('場所の検索が利用できないため、店名・住所を直接入力してEnterで確定してください。');
+        setSearchFailed(true);
       } finally {
         setLoading(false);
       }
@@ -53,7 +59,8 @@ export function LocationPicker({
       setQuery('');
       setSuggestions([]);
     } catch {
-      setError('場所の詳細を取得できませんでした。');
+      setError('場所の詳細を取得できなかったため、店名・住所を直接入力してEnterで確定してください。');
+      setSearchFailed(true);
     } finally {
       setLoading(false);
     }
@@ -89,17 +96,17 @@ export function LocationPicker({
           style={styles.input}
           value={query}
           onChangeText={setQuery}
-          placeholder={isPlacesApiConfigured ? '店名・住所で検索' : '場所の名前を入力'}
+          placeholder={manualModeActive ? '場所の名前を入力' : '店名・住所で検索'}
           placeholderTextColor={palette.textFaint}
-          onSubmitEditing={!isPlacesApiConfigured ? handleManualSubmit : undefined}
-          returnKeyType={isPlacesApiConfigured ? 'search' : 'done'}
+          onSubmitEditing={manualModeActive ? handleManualSubmit : undefined}
+          returnKeyType={manualModeActive ? 'done' : 'search'}
         />
         {loading && <ActivityIndicator size="small" color={palette.silver} />}
       </View>
 
-      {!isPlacesApiConfigured && (
+      {manualModeActive && (
         <Text style={styles.hint}>
-          ※ Google Places APIキー未設定のため、現在は手入力のみです（Enterで確定）。設定後は住所検索に切り替わります。
+          ※ 現在は手入力のみです（Enterで確定）。
         </Text>
       )}
       {error && <Text style={styles.error}>{error}</Text>}
