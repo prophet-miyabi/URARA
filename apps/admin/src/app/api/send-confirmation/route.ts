@@ -2,14 +2,11 @@ import { NextResponse } from 'next/server';
 import { verifyVerificationToken } from '@/lib/email-otp';
 import { corsHeaders, escapeHtml, sendEmail } from '@/lib/email';
 import { renderReservationReceivedEmail } from '@/lib/email-templates';
+import { getOperatorEmails } from '@/lib/notification-settings';
 import { checkAndRecordReservationAttempt } from '@/lib/reservation-rate-limit';
 import { isSupabaseConfigured, supabaseAdmin } from '@/lib/supabase-admin';
 
 const PAYMENT_METHOD_LABEL: Record<string, string> = { cash: '現金', card: 'カード' };
-
-// 未設定の場合は運営宛の通知メールをスキップするだけで、顧客への受付完了メールは
-// 通常通り送信される（お客様体験を壊さないためのベストエフォート仕様）。
-const OPERATOR_NOTIFY_EMAIL = process.env.OPERATOR_NOTIFY_EMAIL;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -85,6 +82,8 @@ export async function POST(request: Request) {
     );
   }
 
+  const operatorEmails = await getOperatorEmails();
+
   const customerSent = await sendEmail(
     body.to,
     '【URARA】ご予約リクエストを承りました（現在手配中）',
@@ -98,7 +97,8 @@ export async function POST(request: Request) {
       estimatedTotalLabel: body.estimatedTotalLabel,
       paymentMethodLabel: PAYMENT_METHOD_LABEL[body.paymentMethod ?? 'cash'] ?? '現金',
       notes: body.notes,
-    })
+    }),
+    operatorEmails
   );
 
   if (!customerSent) {
@@ -106,8 +106,8 @@ export async function POST(request: Request) {
   }
 
   // 運営宛の通知は顧客体験に影響させないベストエフォート。失敗してもログのみ。
-  if (OPERATOR_NOTIFY_EMAIL) {
-    sendEmail(OPERATOR_NOTIFY_EMAIL, `【URARA】新規予約リクエスト（${body.locationName}）`, renderOperatorEmail(body)).catch(
+  for (const operatorEmail of operatorEmails) {
+    sendEmail(operatorEmail, `【URARA】新規予約リクエスト（${body.locationName}）`, renderOperatorEmail(body)).catch(
       (err) => console.error('operator notify send errored', err)
     );
   }

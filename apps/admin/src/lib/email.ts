@@ -1,8 +1,5 @@
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_ADDRESS = process.env.NOTIFY_FROM_ADDRESS ?? "URARA <onboarding@resend.dev>";
-// 送信元(info@urara.tech)は送信専用で受信ボックスが無いため、お客様が返信すると
-// 運営に届くよう、返信先だけ運営の実メールアドレスに向ける。
-const OPERATOR_NOTIFY_EMAIL = process.env.OPERATOR_NOTIFY_EMAIL;
 
 export function isEmailConfigured(): boolean {
   return Boolean(RESEND_API_KEY);
@@ -16,7 +13,10 @@ export function corsHeaders() {
   };
 }
 
-export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+// 送信元(info@urara.tech)は送信専用で受信ボックスが無いため、お客様が返信すると
+// 運営に届くよう、返信先を運営の通知先一覧(replyTo)に向ける。呼び出し側が
+// notification-settings.tsのgetOperatorEmails()で取得した一覧を渡す想定。
+export async function sendEmail(to: string, subject: string, html: string, replyTo?: string[]): Promise<boolean> {
   if (!RESEND_API_KEY) {
     console.warn("RESEND_API_KEY is not configured; skipping email send", to);
     return false;
@@ -32,7 +32,7 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
       to: [to],
       subject,
       html,
-      ...(OPERATOR_NOTIFY_EMAIL ? { reply_to: OPERATOR_NOTIFY_EMAIL } : {}),
+      ...(replyTo && replyTo.length > 0 ? { reply_to: replyTo } : {}),
     }),
   });
   if (!res.ok) {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { corsHeaders, sendEmail } from '@/lib/email';
 import { renderLoginNotificationEmail } from '@/lib/email-templates';
 import { formatDateTimeJST } from '@/lib/format';
+import { getOperatorEmails } from '@/lib/notification-settings';
 import { isSupabaseConfigured, supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function OPTIONS() {
@@ -59,7 +60,8 @@ export async function POST(request: Request) {
       whenLabel: formatDateTimeJST(new Date().toISOString()),
       device,
       ipAddress,
-    })
+    }),
+    await getOperatorEmails()
   );
 
   return NextResponse.json({ sent }, { headers: corsHeaders() });

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { corsHeaders, sendEmail } from '@/lib/email';
 import { renderAccountCreatedEmail } from '@/lib/email-templates';
+import { getOperatorEmails } from '@/lib/notification-settings';
 import { isSupabaseConfigured, supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function OPTIONS() {
@@ -36,7 +37,8 @@ export async function POST(request: Request) {
   const sent = await sendEmail(
     email,
     '【URARA】アカウントの作成が完了いたしました',
-    renderAccountCreatedEmail({ fullName: body.fullName })
+    renderAccountCreatedEmail({ fullName: body.fullName }),
+    await getOperatorEmails()
   );
 
   return NextResponse.json({ sent }, { headers: corsHeaders() });

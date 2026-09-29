@@ -3,6 +3,10 @@ import { Webhook } from 'standardwebhooks';
 import { sendEmail } from '@/lib/email';
 import { renderOtpEmail } from '@/lib/email-templates';
 
+// このエンドポイントはSupabase Authの5秒タイムアウト制約下で呼ばれるため、
+// 運営宛の返信先(getOperatorEmails)を取得する追加のDB往復はあえて省略し、
+// コード配信の速さ・確実性を優先する。
+
 // SupabaseのSMTP中継(Resend経由)は過去2回、原因不明のまま送信失敗
 // ("Error sending confirmation email")に陥った。Auth Hooksの
 // Send Email Hookを使い、認証メールの送信自体はSupabaseに任せず、

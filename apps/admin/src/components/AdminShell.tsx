@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/", label: "予約キュー" },
   { href: "/companions", label: "女の子管理" },
   { href: "/venues", label: "店舗管理" },
+  { href: "/settings", label: "通知設定" },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

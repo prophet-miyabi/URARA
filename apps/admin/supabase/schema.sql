@@ -50,3 +50,19 @@ create policy "reservations_select_own" on public.reservations
 
 create policy "reservations_insert_own" on public.reservations
   for insert with check (auth.uid() = customer_id);
+
+-- 運営への通知メール（予約受付など）の送り先一覧。管理画面の「通知設定」
+-- ページから編集できるようにするための設定テーブル（1行だけを使う）。
+-- service_roleキー（管理画面のサーバー側）からのみ読み書きするため、
+-- RLSは有効化するがポリシーは一切追加しない（＝全面拒否がデフォルト）。
+create table if not exists public.notification_settings (
+  id int primary key default 1,
+  operator_emails text[] not null default '{}',
+  updated_at timestamptz not null default now(),
+  constraint notification_settings_singleton check (id = 1)
+);
+alter table public.notification_settings enable row level security;
+
+insert into public.notification_settings (id, operator_emails)
+values (1, array['info@urara.tech', 'aeiburahamu@gmail.com'])
+on conflict (id) do nothing;
