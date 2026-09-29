@@ -5,8 +5,7 @@ import { palette } from './ui';
 export const isMapConfigured = false;
 
 // 地図によるピン留め選択は現在Web版のみ対応（map-picker.web.tsx）。ネイティブ版は
-// @stripe/stripe-react-native 同様、実際にネイティブビルドする段階で
-// react-native-maps 等を使って実装する。
+// 実際にネイティブビルドする段階で react-native-maps 等を使って実装する。
 export function MapPicker({ onChange: _onChange }: { location: Location | null; onChange: (location: Location) => void }) {
   return (
     <View style={styles.box}>

@@ -8,8 +8,6 @@ const PUBLIC_PATHS = [
   "/login",
   "/api/login",
   "/api/send-confirmation",
-  "/api/create-payment-intent",
-  "/api/customer",
   "/api/notify-account-created",
   "/api/notify-login",
   "/api/auth-send-email-hook",

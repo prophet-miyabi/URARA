@@ -16,8 +16,6 @@ services:
         sync: false
       - key: OPERATOR_NOTIFY_EMAIL
         sync: false
-      - key: STRIPE_SECRET_KEY
-        sync: false
       - key: ADMIN_USERNAME
         sync: false
       - key: ADMIN_PASSWORD
@@ -44,8 +42,6 @@ services:
       - key: NODE_VERSION
         value: 22.11.0
       - key: EXPO_PUBLIC_GOOGLE_PLACES_API_KEY
-        sync: false
-      - key: EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY
         sync: false
       - key: EXPO_PUBLIC_SUPABASE_URL
         sync: false
