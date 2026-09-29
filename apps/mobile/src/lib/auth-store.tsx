@@ -100,10 +100,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       options: { shouldCreateUser: true },
     });
     if (error) {
-      // Supabase側のエラー内容（レート制限やSMTP設定不備など）を握りつぶさず、
-      // 画面上にもそのまま出す。原因調査を素早く行うための一時的な計測。
+      // 詳細はコンソールログに残し、お客様には丁寧な文言だけを表示する。
       console.error('signInWithOtp failed', error.status, error.code, error.message);
-      return { ok: false, error: `コードの送信に失敗しました（詳細: ${error.message}）` };
+      return { ok: false, error: 'コードの送信に失敗しました。しばらくしてから再度お試しください。' };
     }
     return { ok: true };
   }, []);
@@ -131,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       if (error) {
         console.error('customers upsert failed', error.code, error.message, error.details, error.hint);
-        return { ok: false, error: `保存に失敗しました（詳細: ${error.message}）` };
+        return { ok: false, error: '保存に失敗しました。しばらくしてから再度お試しください。' };
       }
       await loadProfile(session.user.id);
       if (isNewProfile) {
