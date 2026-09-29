@@ -129,7 +129,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         address: input.address.trim(),
         email: session.user.email ?? '',
       });
-      if (error) return { ok: false, error: '保存に失敗しました。しばらくしてから再度お試しください。' };
+      if (error) {
+        console.error('customers upsert failed', error.code, error.message, error.details, error.hint);
+        return { ok: false, error: `保存に失敗しました（詳細: ${error.message}）` };
+      }
       await loadProfile(session.user.id);
       if (isNewProfile) {
         sendAccountCreatedEmail(input.fullName.trim(), session.access_token);
