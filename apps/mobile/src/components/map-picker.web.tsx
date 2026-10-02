@@ -82,7 +82,11 @@ export function MapPicker({
               const result = results[0];
               onChange({
                 placeId: result.place_id,
-                name: result.formatted_address.split(/[、,]/)[0] ?? result.formatted_address,
+                // 日本の住所は「日本、〒131-0045 東京都…」の形で返るため、国名と
+                // 郵便番号を除いた部分を場所名にする（先頭の区切りで切ると「日本」になる）。
+                name:
+                  result.formatted_address.replace(/^日本、\s*/, '').replace(/^〒\d{3}-\d{4}\s*/, '').trim() ||
+                  result.formatted_address,
                 address: result.formatted_address,
                 lat,
                 lng,
