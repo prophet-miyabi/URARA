@@ -1,20 +1,26 @@
-name: Keep Render services awake
+name: Uptime check
 
-# Renderの無料プランは非アクセス時に自動休止し、次のリクエストで起き上がるまで
-# 30秒以上かかる。urara-adminはSupabaseのSend Email Hook(5秒でタイムアウト)から
-# 直接呼ばれるため、休止していると認証コード送信そのものが失敗する。恒久的な
-# 対策はRenderの有料プランへの移行だが、それまでの一時しのぎとして定期的に
-# アクセスし、休止させない。
+# 管理者への警告メールの主役は、Supabase(pg_cron)から5分おきに呼ばれる
+# /api/health-check。これはその外側に置く第二の監視層で、Renderやデータベースが
+# 丸ごと止まって警告メール自体が送れない場合でも、ジョブの失敗がGitHubから
+# 通知される。GitHubの定期実行は数時間おきに間引かれるため、休止防止の
+# 役には立たない（確実に起こしておくには、Renderの有料プランが必要）。
 on:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch: {}
 
 jobs:
-  ping:
+  check:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping urara-admin
-        run: curl -fsS --max-time 55 https://urara-admin.onrender.com/login -o /dev/null
-      - name: Ping urara-app
+      - name: urara-admin is up
+        run: curl -fsS --max-time 55 https://urara-admin.onrender.com/api/health -o /dev/null
+      - name: urara-app is up
         run: curl -fsS --max-time 55 https://urara-app.onrender.com/ -o /dev/null
+      - name: Supabase is reachable (a paused project does not answer)
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 https://zedervefbrtnuonffyrz.supabase.co/auth/v1/health)
+          echo "Supabase auth health status: $code"
+          # キーなしでは401が返る。それでも応答していれば、プロジェクトは動いている。
+          [ "$code" = "200" ] || [ "$code" = "401" ]

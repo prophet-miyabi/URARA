@@ -69,6 +69,42 @@ export function renderOtpEmail(params: { code: string; actionType: string }): st
 }
 
 // ------------------------------------------------------------------
+// 管理者向けの障害警告・復旧通知（health.tsから呼ばれる）
+// ------------------------------------------------------------------
+export function renderAlertEmail(params: {
+  kind: "failure" | "recovery" | "test";
+  items: Array<{ label: string; detail: string; hint?: string }>;
+  whenLabel: string;
+}): string {
+  const heading = {
+    failure: "システムに異常を検知しました",
+    recovery: "システムが復旧しました",
+    test: "警告メールの送信テスト",
+  }[params.kind];
+  const lead = {
+    failure: "以下の項目で、連続して異常が確認されました。お手数ですがご確認をお願いいたします。",
+    recovery: "以下の項目は、正常な状態に戻ったことを確認しました。",
+    test: "障害が起きたときに、このメールが管理者に届くことを確認するためのテストです。",
+  }[params.kind];
+
+  const rows = params.items.map((item): [string, string] => [
+    item.label,
+    escapeHtml(item.detail) +
+      (item.hint ? `<br/><span style="color:#8E8E93;font-size:12px;">${escapeHtml(item.hint)}</span>` : ""),
+  ]);
+
+  return renderLayout({
+    heading,
+    deskLabel: "システム監視",
+    bodyHtml: `
+      ${p(lead)}
+      ${detailTable([["検知時刻", escapeHtml(params.whenLabel)], ...rows])}
+      ${p("このメールは自動送信です。管理画面のログインアカウントに登録されたメールアドレス宛にお送りしています。")}
+    `,
+  });
+}
+
+// ------------------------------------------------------------------
 // 1. アカウント作成完了メール
 // ------------------------------------------------------------------
 export function renderAccountCreatedEmail(params: { fullName: string }): string {

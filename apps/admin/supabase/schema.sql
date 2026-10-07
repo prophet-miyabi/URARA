@@ -66,6 +66,19 @@ create table if not exists public.notification_settings (
 );
 alter table public.notification_settings enable row level security;
 
+-- 障害監視（/api/health-check）の状態。警告メールが同じ内容で連発されないよう、
+-- 各チェックの連続失敗回数と最終通知時刻を保存する。管理画面のサーバー側
+-- （service_role）だけが読み書きするため、RLSは有効化のみ（ポリシーなし）。
+create table if not exists public.system_health (
+  name text primary key,
+  status text not null check (status in ('ok', 'fail')),
+  consecutive_failures integer not null default 0,
+  last_alert_at timestamptz,
+  detail text not null default '',
+  updated_at timestamptz not null default now()
+);
+alter table public.system_health enable row level security;
+
 insert into public.notification_settings (id, operator_emails)
 values (1, array['info@urara.tech', 'aeiburahamu@gmail.com'])
 on conflict (id) do nothing;

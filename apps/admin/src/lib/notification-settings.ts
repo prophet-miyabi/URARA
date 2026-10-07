@@ -22,6 +22,18 @@ export async function getOperatorEmails(): Promise<string[]> {
   }
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// 障害警告の宛先は「管理画面にログインできる管理者2人」。ログイン用の
+// ユーザー名（メールアドレス）をそのまま使うので、管理者を入れ替えれば
+// 警告の宛先も自動で追従する。メールアドレスの形式でなければ通知先一覧に退避する。
+export async function getAlertRecipients(): Promise<string[]> {
+  const admins = [process.env.ADMIN_USERNAME, process.env.ADMIN_USERNAME_2].filter(
+    (u): u is string => Boolean(u) && EMAIL_PATTERN.test(u as string)
+  );
+  return admins.length > 0 ? admins : getOperatorEmails();
+}
+
 export async function setOperatorEmails(emails: string[]): Promise<boolean> {
   if (!isSupabaseConfigured || !supabaseAdmin) return false;
   const { error } = await supabaseAdmin

@@ -11,6 +11,8 @@ const PUBLIC_PATHS = [
   "/api/notify-account-created",
   "/api/notify-login",
   "/api/auth-send-email-hook",
+  "/api/health",
+  "/api/health-check",
 ];
 
 export async function middleware(request: NextRequest) {
