@@ -51,7 +51,10 @@ function LoginForm() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
-          className="mb-4 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          autoCapitalize="none"
+          autoCorrect="off"
+          inputMode="email"
+          className="mb-4 h-12 w-full rounded-md border border-neutral-300 px-3 text-base"
           required
         />
 
@@ -61,7 +64,7 @@ function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
-          className="mb-4 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          className="mb-4 h-12 w-full rounded-md border border-neutral-300 px-3 text-base"
           required
         />
 
@@ -70,7 +73,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-md bg-neutral-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:opacity-40"
+          className="h-12 w-full rounded-md bg-neutral-900 px-3 text-base font-semibold text-white transition hover:bg-neutral-700 active:bg-neutral-700 disabled:opacity-40"
         >
           {submitting ? "ログイン中..." : "ログイン"}
         </button>

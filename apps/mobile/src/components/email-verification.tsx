@@ -68,7 +68,10 @@ export function EmailVerificationField({
         placeholder="you@example.com"
         placeholderTextColor={palette.textFaint}
         autoCapitalize="none"
+        autoCorrect={false}
         keyboardType="email-address"
+        autoComplete="email"
+        textContentType="emailAddress"
         editable={!isLoggedIn}
       />
 
@@ -100,6 +103,8 @@ export function EmailVerificationField({
                 placeholder="12345678"
                 placeholderTextColor={palette.textFaint}
                 keyboardType="number-pad"
+                autoComplete="one-time-code"
+                textContentType="oneTimeCode"
                 maxLength={10}
               />
               <PlatinumButton
@@ -130,7 +135,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    fontSize: 14,
+    fontSize: 16,
     color: palette.text,
     backgroundColor: palette.card,
   },

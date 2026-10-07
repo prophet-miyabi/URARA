@@ -132,7 +132,7 @@ function MonthGrid({
 const HOURS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 const MINUTES = [0, 15, 30, 45];
 
-const WHEEL_ITEM_HEIGHT = 40;
+const WHEEL_ITEM_HEIGHT = 44;
 const WHEEL_VISIBLE_ITEMS = 5;
 const WHEEL_HEIGHT = WHEEL_ITEM_HEIGHT * WHEEL_VISIBLE_ITEMS;
 const WHEEL_PADDING = WHEEL_ITEM_HEIGHT * Math.floor(WHEEL_VISIBLE_ITEMS / 2);
@@ -317,9 +317,9 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: palette.cardBorder,
     alignItems: 'center',

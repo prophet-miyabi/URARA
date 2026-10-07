@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -25,10 +26,29 @@ export default function RootLayout() {
     if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) return null;
+  // 検索結果やLINE等での共有表示に使われるため、フォント読み込み前でも出す。
+  const head = (
+    <Head>
+      <title>URARA COMPANION | コンパニオン予約</title>
+      <meta
+        name="description"
+        content="山梨県内の飲食店・宴会場・イベント会場へ、コンパニオンを派遣いたします。スマートフォンからかんたんにご予約いただけます。"
+      />
+      <meta property="og:title" content="URARA COMPANION | コンパニオン予約" />
+      <meta property="og:description" content="山梨県内の宴会・接待に、コンパニオンを派遣いたします。" />
+      <meta property="og:type" content="website" />
+      <meta property="og:locale" content="ja_JP" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-title" content="URARA" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    </Head>
+  );
+
+  if (!fontsLoaded) return head;
 
   return (
     <SafeAreaProvider>
+      {head}
       <AuthProvider>
         <ReservationProvider>
           <StatusBar style="light" />

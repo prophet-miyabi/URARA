@@ -8,6 +8,11 @@ import { STATUS_LABEL, type ReservationStatus } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatDateTimeJST, formatYen } from "@/lib/format";
 
+const CONFIRM_MESSAGE: Partial<Record<ReservationStatus, string>> = {
+  confirmed: "お客様に「予約確定」のメールを送信します。よろしいですか？",
+  cancelled: "この予約をキャンセル（お断り）にします。よろしいですか？",
+};
+
 const BOOKING_TYPE_LABEL = { now: "今すぐ予約", scheduled: "日時指定予約" } as const;
 const PAYMENT_LABEL = { cash: "現金", card: "カード" } as const;
 
@@ -60,10 +65,25 @@ export function ReservationDetail({ id }: { id: string }) {
   const canComplete = !isTerminal && reservation.status === "confirmed";
   const canCancel = !isTerminal;
 
-  const setStatus = (status: ReservationStatus) => store.setStatus(reservation.id, status);
+  // お客様へのメール送信や取り消しは、スマホでの誤タップが取り返しのつかない
+  // 結果になるため、実行前に確認を挟む。
+  const setStatus = (status: ReservationStatus) => {
+    const message = CONFIRM_MESSAGE[status];
+    if (message && !window.confirm(message)) return;
+    store.setStatus(reservation.id, status);
+  };
+
+  // 画面下に固定表示する「いま行うべき次の操作」。
+  const primaryAction = canMoveToArranging
+    ? { label: "手配中にする", status: "arranging" as const }
+    : canConfirm
+      ? { label: "確定して通知送信", status: "confirmed" as const }
+      : canComplete
+        ? { label: "利用終了にする", status: "completed" as const }
+        : null;
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl pb-24 md:pb-0">
       <Link href="/" className="text-sm text-neutral-500 hover:underline">
         ← 予約キューに戻る
       </Link>
@@ -106,9 +126,53 @@ export function ReservationDetail({ id }: { id: string }) {
           <section className="rounded-lg border border-neutral-200 bg-white p-4">
             <h2 className="mb-3 text-sm font-bold text-neutral-500">予約内容</h2>
             <dl className="space-y-2 text-sm">
-              <Row label="お客様" value={`${reservation.contactName} (${reservation.contactPhone})`} />
-              <Row label="メールアドレス" value={reservation.contactEmail || "-"} />
-              <Row label="場所" value={`${reservation.locationName}\n${reservation.locationAddress}`} />
+              <Row
+                label="お客様"
+                value={
+                  <>
+                    {reservation.contactName}
+                    <br />
+                    {reservation.contactPhone ? (
+                      <a href={`tel:${reservation.contactPhone}`} className="text-blue-700 underline">
+                        {reservation.contactPhone}（タップで発信）
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </>
+                }
+              />
+              <Row
+                label="メールアドレス"
+                value={
+                  reservation.contactEmail ? (
+                    <a href={`mailto:${reservation.contactEmail}`} className="break-all text-blue-700 underline">
+                      {reservation.contactEmail}
+                    </a>
+                  ) : (
+                    "-"
+                  )
+                }
+              />
+              <Row
+                label="場所"
+                value={
+                  <>
+                    {reservation.locationName}
+                    <br />
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `${reservation.locationName} ${reservation.locationAddress}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-700 underline"
+                    >
+                      {reservation.locationAddress || "地図で開く"}（地図で開く）
+                    </a>
+                  </>
+                }
+              />
               <Row label="予約種別" value={BOOKING_TYPE_LABEL[reservation.bookingType]} />
               <Row label="日時" value={formatDateTimeJST(reservation.requestedDatetime)} />
               <Row label="お客様人数" value={`${reservation.guestCount}名`} />
@@ -131,7 +195,8 @@ export function ReservationDetail({ id }: { id: string }) {
                     value={durationInput ?? reservation.durationHours}
                     onChange={(e) => setDurationInput(e.target.value)}
                     onBlur={commitDuration}
-                    className="w-16 rounded border border-neutral-300 px-2 py-1 text-right"
+                    inputMode="numeric"
+                    className="h-11 w-20 rounded border border-neutral-300 px-2 text-right text-base"
                   />
                   <span>時間</span>
                 </div>
@@ -147,7 +212,8 @@ export function ReservationDetail({ id }: { id: string }) {
                     value={travelFeeInput ?? reservation.travelFee}
                     onChange={(e) => setTravelFeeInput(e.target.value)}
                     onBlur={commitTravelFee}
-                    className="w-24 rounded border border-neutral-300 px-2 py-1 text-right"
+                    inputMode="numeric"
+                    className="h-11 w-28 rounded border border-neutral-300 px-2 text-right text-base"
                   />
                 </div>
               </div>
@@ -194,15 +260,30 @@ export function ReservationDetail({ id }: { id: string }) {
           </section>
         </div>
       </div>
+
+      {primaryAction && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur md:hidden"
+          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        >
+          <button
+            type="button"
+            onClick={() => setStatus(primaryAction.status)}
+            className="h-12 w-full rounded-md bg-neutral-900 text-base font-semibold text-white active:bg-neutral-700"
+          >
+            {primaryAction.label}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <dt className="text-neutral-500">{label}</dt>
-      <dd className="text-right font-medium whitespace-pre-line">{value}</dd>
+      <dt className="shrink-0 text-neutral-500">{label}</dt>
+      <dd className="min-w-0 text-right font-medium whitespace-pre-line">{value}</dd>
     </div>
   );
 }
@@ -224,7 +305,7 @@ function ActionButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-md px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-30 ${
+      className={`min-h-11 rounded-md px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-30 ${
         primary
           ? "bg-neutral-900 text-white hover:bg-neutral-700"
           : danger

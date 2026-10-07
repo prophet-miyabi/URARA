@@ -143,6 +143,11 @@ const styles = StyleSheet.create({
   outlineButton: {
     borderRadius: 10,
     paddingVertical: 12,
+    // 指で押しやすい最小サイズ（44pt）を確保する。
+    minHeight: 44,
+    minWidth: 44,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: palette.cardBorder,

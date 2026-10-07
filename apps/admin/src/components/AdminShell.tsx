@@ -36,14 +36,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={() => setMenuOpen(true)}
           aria-label="メニューを開く"
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-neutral-200 text-neutral-700"
+          className="flex h-11 w-11 items-center justify-center rounded-md border border-neutral-200 text-neutral-700"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-5 w-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
           </svg>
         </button>
         <p className="text-sm font-bold">{currentLabel}</p>
-        <div className="w-9" />
+        <div className="w-11" />
       </header>
 
       {/* Mobile drawer + backdrop */}
@@ -92,7 +92,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            className="rounded-md px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+            className="rounded-md px-3 py-3 text-base font-medium text-neutral-700 hover:bg-neutral-100 active:bg-neutral-100 md:py-2 md:text-sm"
           >
             {item.label}
           </Link>
@@ -102,7 +102,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full rounded-md px-3 py-2 text-left text-sm font-medium text-neutral-500 hover:bg-neutral-100"
+          className="w-full rounded-md px-3 py-3 text-left text-base font-medium text-neutral-500 hover:bg-neutral-100 active:bg-neutral-100 md:py-2 md:text-sm"
         >
           ログアウト
         </button>

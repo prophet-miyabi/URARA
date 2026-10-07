@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.card,
   },
   searchIcon: { marginRight: 2 },
-  input: { flex: 1, color: palette.text, fontSize: 14, paddingVertical: 10 },
+  input: { flex: 1, color: palette.text, fontSize: 16, paddingVertical: 12 },
   hint: { color: palette.textFaint, fontSize: 11, lineHeight: 16 },
   error: { color: palette.danger, fontSize: 12 },
   suggestionList: { gap: 8 },

@@ -18,8 +18,15 @@ const FILTERS: Array<{ value: ReservationStatus | "all"; label: string }> = [
 ];
 
 export default function ReservationsQueuePage() {
-  const { reservations, loading } = useReservationStore();
+  const { reservations, loading, lastUpdated, refresh } = useReservationStore();
   const [filter, setFilter] = useState<ReservationStatus | "all">("all");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  };
 
   const filtered = useMemo(() => {
     const list = filter === "all" ? reservations : reservations.filter((r) => r.status === filter);
@@ -32,17 +39,35 @@ export default function ReservationsQueuePage() {
 
   return (
     <div className="max-w-5xl">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-bold">予約キュー</h1>
-        <span className="text-sm text-neutral-500">全 {reservations.length} 件</span>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold">予約キュー</h1>
+          <span className="text-sm text-neutral-500">
+            全 {reservations.length} 件
+            {lastUpdated &&
+              ` ・ ${new Date(lastUpdated).toLocaleTimeString("ja-JP", {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "Asia/Tokyo",
+              })} 更新`}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="min-h-11 shrink-0 rounded-md border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-700 active:bg-neutral-100 disabled:opacity-40"
+        >
+          {refreshing ? "更新中..." : "更新"}
+        </button>
       </div>
 
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition ${
+            className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-medium transition ${
               filter === f.value
                 ? "bg-neutral-900 text-white"
                 : "bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-100"

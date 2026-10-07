@@ -310,16 +310,23 @@ export default function BookingScreen() {
         </View>
       )}
 
+      {/* スマホでは主ボタンを横幅いっぱいにして、親指で確実に押せるようにする。 */}
       <View style={styles.nav}>
-        {step > 0 && <SecondaryButton label="戻る" onPress={() => setStep((s) => s - 1)} />}
-        {step < 1 && <PlatinumButton label="次へ" disabled={!canProceedStep0} onPress={() => setStep((s) => s + 1)} />}
-        {step === 1 && (
-          <PlatinumButton
-            label={submitting ? '送信中...' : 'この内容で申し込む'}
-            disabled={!canSubmit || submitting}
-            onPress={handleSubmit}
-          />
+        {step > 0 && (
+          <View style={styles.navSecondary}>
+            <SecondaryButton label="戻る" onPress={() => setStep((s) => s - 1)} />
+          </View>
         )}
+        <View style={styles.navPrimary}>
+          {step < 1 && <PlatinumButton label="次へ" disabled={!canProceedStep0} onPress={() => setStep((s) => s + 1)} />}
+          {step === 1 && (
+            <PlatinumButton
+              label={submitting ? '送信中...' : 'この内容で申し込む'}
+              disabled={!canSubmit || submitting}
+              onPress={handleSubmit}
+            />
+          )}
+        </View>
       </View>
     </ScrollView>
   );
@@ -389,7 +396,7 @@ const styles = StyleSheet.create({
     borderColor: palette.cardBorder,
     borderRadius: 10,
     padding: 12,
-    fontSize: 14,
+    fontSize: 16,
     minHeight: 70,
     textAlignVertical: 'top',
     backgroundColor: palette.card,
@@ -400,7 +407,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.cardBorder,
     borderRadius: 999,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 14,
     backgroundColor: palette.card,
   },
@@ -417,7 +424,7 @@ const styles = StyleSheet.create({
     borderColor: palette.cardBorder,
     borderRadius: 10,
     padding: 12,
-    fontSize: 14,
+    fontSize: 16,
     minHeight: 80,
     textAlignVertical: 'top',
     backgroundColor: palette.card,
@@ -436,5 +443,7 @@ const styles = StyleSheet.create({
   agreeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   agreeText: { fontSize: 13, color: palette.text, fontWeight: '600', flexShrink: 1 },
   emailError: { color: palette.danger, fontSize: 11, marginTop: -8 },
-  nav: { flexDirection: 'row', gap: 10, justifyContent: 'flex-end' },
+  nav: { flexDirection: 'row', gap: 10, alignItems: 'stretch' },
+  navSecondary: { flex: 1, justifyContent: 'center' },
+  navPrimary: { flex: 2 },
 });

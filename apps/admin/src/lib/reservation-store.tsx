@@ -11,6 +11,9 @@ interface ReservationStore {
   companions: Companion[];
   venues: Venue[];
   loading: boolean;
+  // 最後に一覧を取得できた時刻（ミリ秒）。まだ取得できていなければnull。
+  lastUpdated: number | null;
+  refresh: () => Promise<void>;
   getReservation: (id: string) => Reservation | undefined;
   setStatus: (id: string, status: ReservationStatus) => Promise<void>;
   updateTravelFee: (id: string, travelFee: number) => Promise<void>;
@@ -19,22 +22,54 @@ interface ReservationStore {
 
 const ReservationContext = createContext<ReservationStore | null>(null);
 
+// 取得に失敗したとき（電波が不安定など）はnullを返し、表示中の一覧をそのまま残す。
+async function fetchReservations(): Promise<Reservation[] | null> {
+  try {
+    const res = await fetch("/api/reservations");
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.reservations ?? [];
+  } catch {
+    return null;
+  }
+}
+
 export function ReservationProvider({ children }: { children: React.ReactNode }) {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
+  // 手動の「更新」ボタン用。
+  const refresh = useCallback(async () => {
+    const list = await fetchReservations();
+    if (list) {
+      setReservations(list);
+      setLastUpdated(Date.now());
+    }
+  }, []);
+
+  // スマホで開きっぱなしにしても新しい予約に気づけるよう、1分おきと、
+  // 画面に戻ってきたとき（別アプリから戻る、ロック解除など）に再取得する。
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/reservations")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled) setReservations(data.reservations ?? []);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+    const load = () =>
+      fetchReservations().then((list) => {
+        if (cancelled || !list) return;
+        setReservations(list);
+        setLastUpdated(Date.now());
       });
+    load().finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    const timer = setInterval(load, 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
@@ -67,12 +102,14 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
       companions: MOCK_COMPANIONS,
       venues: MOCK_VENUES,
       loading,
+      lastUpdated,
+      refresh,
       getReservation,
       setStatus,
       updateTravelFee,
       updateDuration,
     }),
-    [reservations, loading, getReservation, setStatus, updateTravelFee, updateDuration]
+    [reservations, loading, lastUpdated, refresh, getReservation, setStatus, updateTravelFee, updateDuration]
   );
 
   return <ReservationContext.Provider value={value}>{children}</ReservationContext.Provider>;

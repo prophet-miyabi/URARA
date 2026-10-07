@@ -50,6 +50,8 @@ export function ProfileForm({
         onChangeText={setFullName}
         placeholder="山田 太郎"
         placeholderTextColor={palette.textFaint}
+        autoComplete="name"
+        textContentType="name"
       />
 
       <Text style={styles.fieldLabel}>電話番号</Text>
@@ -60,6 +62,8 @@ export function ProfileForm({
         placeholder="090-1234-5678"
         placeholderTextColor={palette.textFaint}
         keyboardType="phone-pad"
+        autoComplete="tel"
+        textContentType="telephoneNumber"
       />
 
       <Text style={styles.fieldLabel}>ご住所</Text>
@@ -69,6 +73,8 @@ export function ProfileForm({
         onChangeText={setAddress}
         placeholder="山梨県甲府市..."
         placeholderTextColor={palette.textFaint}
+        autoComplete="street-address"
+        textContentType="fullStreetAddress"
       />
 
       {error && <Text style={styles.errorText}>{error}</Text>}
@@ -93,7 +99,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    fontSize: 14,
+    // iPhoneのSafariは16px未満の入力欄にフォーカスすると画面を自動で拡大してしまう。
+    fontSize: 16,
     color: palette.text,
     backgroundColor: palette.card,
   },

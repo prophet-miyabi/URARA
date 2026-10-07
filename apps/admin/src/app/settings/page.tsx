@@ -71,7 +71,7 @@ export default function SettingsPage() {
                   type="button"
                   onClick={() => handleRemove(email)}
                   disabled={saving}
-                  className="text-xs font-semibold text-red-600 hover:underline disabled:opacity-40"
+                  className="-my-2 min-h-11 px-2 text-xs font-semibold text-red-600 hover:underline disabled:opacity-40"
                 >
                   削除
                 </button>
@@ -87,13 +87,16 @@ export default function SettingsPage() {
             onChange={(e) => setNewEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             placeholder="new-address@example.com"
-            className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            autoCapitalize="none"
+            autoCorrect="off"
+            inputMode="email"
+            className="h-11 min-w-0 flex-1 rounded-md border border-neutral-300 px-3 text-base"
           />
           <button
             type="button"
             onClick={handleAdd}
             disabled={saving || !newEmail.trim()}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+            className="h-11 shrink-0 rounded-md bg-neutral-900 px-5 text-sm font-semibold text-white disabled:opacity-40"
           >
             追加
           </button>
