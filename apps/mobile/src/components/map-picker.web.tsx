@@ -10,9 +10,25 @@ export const isMapConfigured = Boolean(API_KEY);
 // 山梨県甲府市（対応エリアの中心）を初期表示位置にする。
 const DEFAULT_CENTER = { lat: 35.6642, lng: 138.5686 };
 
+declare global {
+  interface Window {
+    gm_authFailure?: () => void;
+  }
+}
+
+// APIキーの制限・請求設定などの認証エラーを、Googleは地図の上に純正のエラー
+// パネルで表示するだけで、アプリには知らせない。gm_authFailureはその通知用の
+// 公式フックで、これを受けてお客様向けの穏やかな表示に切り替える。
+let authFailed = false;
+const authFailureListeners = new Set<() => void>();
+
 let mapsLoadPromise: Promise<void> | null = null;
 function loadGoogleMaps(): Promise<void> {
   if (mapsLoadPromise) return mapsLoadPromise;
+  window.gm_authFailure = () => {
+    authFailed = true;
+    authFailureListeners.forEach((listener) => listener());
+  };
   mapsLoadPromise = new Promise((resolve, reject) => {
     if (window.google?.maps) {
       resolve();
@@ -50,6 +66,10 @@ export function MapPicker({
 
   useEffect(() => {
     let cancelled = false;
+    const onAuthFailure = () => {
+      if (!cancelled) setStatus('error');
+    };
+    authFailureListeners.add(onAuthFailure);
 
     loadGoogleMaps()
       .then(() => {
@@ -107,7 +127,7 @@ export function MapPicker({
           resolvePosition(event.latLng.lat(), event.latLng.lng());
         });
 
-        setStatus('ready');
+        setStatus(authFailed ? 'error' : 'ready');
       })
       .catch(() => {
         if (!cancelled) setStatus('error');
@@ -115,6 +135,7 @@ export function MapPicker({
 
     return () => {
       cancelled = true;
+      authFailureListeners.delete(onAuthFailure);
     };
     // 初回マウント時のみ地図を初期化する（毎回の再生成を避けるため依存配列は空のまま）。
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -133,15 +154,11 @@ export function MapPicker({
 
   return (
     <View style={styles.wrapper}>
-      <View ref={containerRef} style={styles.map} />
+      {/* 失敗時はGoogle純正のエラーパネルごと隠す（refの要素は残しておく）。 */}
+      <View ref={containerRef} style={[styles.map, status === 'error' && styles.hidden]} />
       {status === 'loading' && (
         <View style={styles.overlay}>
           <ActivityIndicator color={palette.silver} />
-        </View>
-      )}
-      {status === 'error' && (
-        <View style={styles.overlay}>
-          <Text style={styles.errorText}>地図の読み込みに失敗しました</Text>
         </View>
       )}
       {resolving && (
@@ -149,7 +166,13 @@ export function MapPicker({
           <ActivityIndicator size="small" color={palette.onSilver} />
         </View>
       )}
-      <Text style={styles.hint}>地図をタップ、またはピンをドラッグして場所を選択できます</Text>
+      {status === 'error' ? (
+        <Text style={styles.unavailable}>
+          地図は現在ご利用いただけません。上の検索欄で店名・住所を検索するか、場所の名前を入力してください。
+        </Text>
+      ) : (
+        <Text style={styles.hint}>地図をタップ、またはピンをドラッグして場所を選択できます</Text>
+      )}
     </View>
   );
 }
@@ -173,7 +196,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: palette.card,
   },
-  errorText: { color: palette.danger, fontSize: 12 },
+  hidden: { display: 'none' },
+  unavailable: { color: palette.textMuted, fontSize: 12, lineHeight: 18 },
   resolvingBadge: {
     position: 'absolute',
     top: 8,
