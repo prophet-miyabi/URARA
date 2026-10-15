@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-neutral-50 text-neutral-900">
+      <body className="min-h-full bg-canvas text-ink">
         <ReservationProvider>
           <AdminShell>{children}</AdminShell>
         </ReservationProvider>

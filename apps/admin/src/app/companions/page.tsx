@@ -12,6 +12,10 @@ export default function CompanionsPage() {
         <span className="text-xs text-neutral-400">連絡は電話・LINEのみ（専用アプリなし）</span>
       </div>
 
+      <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        この画面は準備中です。表示されているのは見本のデータで、実際の予約とは連動していません。
+      </div>
+
       {/* Mobile: card list */}
       <div className="flex flex-col gap-3 md:hidden">
         {companions.map((c) => (

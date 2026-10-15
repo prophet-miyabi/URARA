@@ -1,10 +1,9 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -26,9 +25,12 @@ function LoginForm() {
         setError(data.error ?? "ログインに失敗しました");
         return;
       }
-      const next = searchParams.get("next") ?? "/";
-      router.replace(next);
-      router.refresh();
+      // 画面を丸ごと読み込み直す。ログイン前に走った（未認証で失敗した）予約の取得を、
+      // ログイン後の状態でやり直すため。ここを軽い遷移にすると、ログイン直後は
+      // 次の自動更新まで予約が空のまま表示されてしまう。
+      // 移動先は自サイト内のパスだけに限る（"//example.com" のような外部サイトを除く）。
+      const requested = searchParams.get("next") ?? "/";
+      window.location.assign(/^\/(?![/\\])/.test(requested) ? requested : "/");
     } catch {
       setError("通信エラーが発生しました");
     } finally {

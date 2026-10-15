@@ -25,7 +25,7 @@ export function ReservationDetail({ id }: { id: string }) {
   if (!reservation) {
     return (
       <div className="max-w-3xl">
-        <Link href="/" className="text-sm text-neutral-500 hover:underline">
+        <Link href="/reservations" className="text-sm text-neutral-500 hover:underline">
           ← 予約キューに戻る
         </Link>
         <p className="mt-4 text-neutral-500">
@@ -84,19 +84,19 @@ export function ReservationDetail({ id }: { id: string }) {
 
   return (
     <div className="max-w-3xl pb-24 md:pb-0">
-      <Link href="/" className="text-sm text-neutral-500 hover:underline">
+      <Link href="/reservations" className="text-sm text-neutral-500 hover:underline">
         ← 予約キューに戻る
       </Link>
 
       <div className="mt-3 mb-6 flex items-center justify-between">
         <h1 className="text-xl font-bold">
-          予約詳細 <span className="text-neutral-400 font-normal text-base">#{reservation.id}</span>
+          予約詳細 <span className="text-neutral-400 font-normal text-base">#{reservation.id.slice(0, 8)}</span>
         </h1>
         <StatusBadge status={reservation.status} />
       </div>
 
       {/* Status stepper */}
-      <div className="mb-6 rounded-lg border border-neutral-200 bg-white p-3 sm:p-4">
+      <div className="mb-6 rounded-xl border border-line bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-3 sm:p-4">
         <div className="flex items-center gap-1 text-[11px] sm:gap-2 sm:text-xs">
           {(["received", "arranging", "confirmed", "completed"] as ReservationStatus[]).map((s, i, arr) => {
             const currentIndex = ["received", "arranging", "confirmed", "completed"].indexOf(reservation.status);
@@ -123,7 +123,7 @@ export function ReservationDetail({ id }: { id: string }) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Left column: details */}
         <div className="space-y-6">
-          <section className="rounded-lg border border-neutral-200 bg-white p-4">
+          <section className="rounded-xl border border-line bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-4">
             <h2 className="mb-3 text-sm font-bold text-neutral-500">予約内容</h2>
             <dl className="space-y-2 text-sm">
               <Row
@@ -182,7 +182,7 @@ export function ReservationDetail({ id }: { id: string }) {
             </dl>
           </section>
 
-          <section className="rounded-lg border border-neutral-200 bg-white p-4">
+          <section className="rounded-xl border border-line bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-4">
             <h2 className="mb-3 text-sm font-bold text-neutral-500">利用時間・料金</h2>
             <dl className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
@@ -231,7 +231,7 @@ export function ReservationDetail({ id }: { id: string }) {
 
         {/* Right column: actions */}
         <div className="space-y-6">
-          <section className="rounded-lg border border-neutral-200 bg-white p-4">
+          <section className="rounded-xl border border-line bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] p-4">
             <h2 className="mb-3 text-sm font-bold text-neutral-500">ステータス操作</h2>
             <div className="flex flex-col gap-2">
               <ActionButton disabled={!canMoveToArranging} onClick={() => setStatus("arranging")}>
@@ -263,8 +263,9 @@ export function ReservationDetail({ id }: { id: string }) {
 
       {primaryAction && (
         <div
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur md:hidden"
-          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+          className="fixed inset-x-0 z-30 border-t border-line bg-white/95 px-4 py-3 backdrop-blur md:hidden"
+          // 下部タブ（高さ3.5rem＋ホームバーの余白）のすぐ上に置く。
+          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
         >
           <button
             type="button"

@@ -1,188 +1,205 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { useReservationStore } from "@/lib/reservation-store";
-import { STATUS_LABEL, type Reservation, type ReservationStatus } from "@/lib/types";
+import { useEffect, useMemo, useState } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
-import { formatDateTimeJST, formatYen } from "@/lib/format";
-import { calculatePrice } from "@companion-dispatch/pricing";
+import { Card, EmptyState, PageHeader, StatCard } from "@/components/ui";
+import { formatYen } from "@/lib/format";
+import { describeWhen } from "@/lib/jst";
+import { computeMetrics, needsAttention, totalYen } from "@/lib/reservation-metrics";
+import { useReservationStore } from "@/lib/reservation-store";
+import type { Reservation } from "@/lib/types";
+import { useNow } from "@/lib/use-now";
 
-const FILTERS: Array<{ value: ReservationStatus | "all"; label: string }> = [
-  { value: "all", label: "すべて" },
-  { value: "received", label: STATUS_LABEL.received },
-  { value: "arranging", label: STATUS_LABEL.arranging },
-  { value: "confirmed", label: STATUS_LABEL.confirmed },
-  { value: "completed", label: STATUS_LABEL.completed },
-  { value: "cancelled", label: STATUS_LABEL.cancelled },
-];
+interface HealthCheck {
+  name: string;
+  label: string;
+  status: "ok" | "fail";
+  detail: string;
+  updatedAt: string;
+}
 
-export default function ReservationsQueuePage() {
-  const { reservations, loading, lastUpdated, refresh } = useReservationStore();
-  const [filter, setFilter] = useState<ReservationStatus | "all">("all");
-  const [refreshing, setRefreshing] = useState(false);
+export default function DashboardPage() {
+  const { reservations, loading } = useReservationStore();
+  const now = useNow();
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await refresh();
-    setRefreshing(false);
-  };
+  const metrics = useMemo(() => computeMetrics(reservations, now), [reservations, now]);
+  const attention = useMemo(
+    () =>
+      reservations
+        .filter((r) => needsAttention(r, now))
+        .sort((a, b) => Date.parse(a.requestedDatetime) - Date.parse(b.requestedDatetime)),
+    [reservations, now]
+  );
+  const upcoming = useMemo(
+    () =>
+      reservations
+        .filter((r) => (r.status === "confirmed" || r.status === "arranging") && Date.parse(r.requestedDatetime) >= now)
+        .sort((a, b) => Date.parse(a.requestedDatetime) - Date.parse(b.requestedDatetime))
+        .slice(0, 5),
+    [reservations, now]
+  );
 
-  const filtered = useMemo(() => {
-    const list = filter === "all" ? reservations : reservations.filter((r) => r.status === filter);
-    return [...list].sort((a, b) => {
-      if (a.bookingType === "now" && b.bookingType !== "now") return -1;
-      if (b.bookingType === "now" && a.bookingType !== "now") return 1;
-      return new Date(a.requestedDatetime).getTime() - new Date(b.requestedDatetime).getTime();
-    });
-  }, [reservations, filter]);
+  const todayLabel = new Date(now).toLocaleDateString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
 
   return (
-    <div className="max-w-5xl">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold">予約キュー</h1>
-          <span className="text-sm text-neutral-500">
-            全 {reservations.length} 件
-            {lastUpdated &&
-              ` ・ ${new Date(lastUpdated).toLocaleTimeString("ja-JP", {
-                hour: "2-digit",
-                minute: "2-digit",
-                timeZone: "Asia/Tokyo",
-              })} 更新`}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="min-h-11 shrink-0 rounded-md border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-700 active:bg-neutral-100 disabled:opacity-40"
-        >
-          {refreshing ? "更新中..." : "更新"}
-        </button>
+    <div className="mx-auto max-w-6xl">
+      <PageHeader title="ダッシュボード" description={`${todayLabel} の状況`} />
+
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard
+          label="対応待ち"
+          value={loading ? "-" : `${metrics.pending}件`}
+          hint="受付済み・手配中"
+          tone={metrics.pending > 0 ? "alert" : "default"}
+        />
+        <StatCard label="今日の予約" value={loading ? "-" : `${metrics.today}件`} hint="キャンセルを除く" />
+        <StatCard label="今月の確定" value={loading ? "-" : `${metrics.monthConfirmed}件`} hint="確定・利用終了" />
+        <StatCard label="今月の売上目安" value={loading ? "-" : formatYen(metrics.monthRevenue)} hint="確定・利用終了の合計" />
       </div>
 
-      <div className="mb-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {FILTERS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-medium transition ${
-              filter === f.value
-                ? "bg-neutral-900 text-white"
-                : "bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-100"
-            }`}
+      <div className="grid gap-5 lg:grid-cols-5">
+        <div className="space-y-5 lg:col-span-3">
+          <Card
+            title="いま対応が必要な予約"
+            action={
+              attention.length > 0 && (
+                <span className="rounded-full bg-rose-600 px-2 py-0.5 text-xs font-bold text-white">{attention.length}</span>
+              )
+            }
           >
-            {f.label}
-          </button>
-        ))}
+            {loading ? (
+              <EmptyState>読み込み中...</EmptyState>
+            ) : attention.length === 0 ? (
+              <EmptyState>対応が必要な予約はありません</EmptyState>
+            ) : (
+              <ul className="divide-y divide-line">
+                {attention.slice(0, 6).map((r) => (
+                  <ReservationRow key={r.id} reservation={r} now={now} />
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card title="これからの予定" action={<Link href="/reservations" className="text-sm font-medium text-subtle hover:underline">すべて見る</Link>}>
+            {loading ? (
+              <EmptyState>読み込み中...</EmptyState>
+            ) : upcoming.length === 0 ? (
+              <EmptyState>これからの予定はありません</EmptyState>
+            ) : (
+              <ul className="divide-y divide-line">
+                {upcoming.map((r) => (
+                  <ReservationRow key={r.id} reservation={r} now={now} />
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2">
+          <SystemStatusCard />
+        </div>
       </div>
-
-      {loading ? (
-        <div className="rounded-lg border border-neutral-200 bg-white px-4 py-8 text-center text-neutral-400">
-          読み込み中...
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-lg border border-neutral-200 bg-white px-4 py-8 text-center text-neutral-400">
-          該当する予約はありません
-        </div>
-      ) : (
-        <>
-          {/* Mobile: card list */}
-          <div className="flex flex-col gap-3 md:hidden">
-            {filtered.map((r) => (
-              <ReservationCard key={r.id} reservation={r} />
-            ))}
-          </div>
-
-          {/* Desktop: table */}
-          <div className="hidden overflow-hidden rounded-lg border border-neutral-200 bg-white md:block">
-            <table className="w-full text-sm">
-              <thead className="bg-neutral-50 text-left text-neutral-500">
-                <tr>
-                  <th className="px-4 py-2 font-medium">種別</th>
-                  <th className="px-4 py-2 font-medium">お客様</th>
-                  <th className="px-4 py-2 font-medium">店舗</th>
-                  <th className="px-4 py-2 font-medium">日時</th>
-                  <th className="px-4 py-2 font-medium">人数</th>
-                  <th className="px-4 py-2 font-medium">金額目安</th>
-                  <th className="px-4 py-2 font-medium">状況</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((r) => {
-                  const price = calculatePrice({
-                    companionCount: r.companionCount,
-                    durationHours: r.durationHours,
-                    travelFee: r.travelFee,
-                  });
-                  return (
-                    <tr key={r.id} className="border-t border-neutral-100 hover:bg-neutral-50">
-                      <td className="px-4 py-3">
-                        {r.bookingType === "now" ? (
-                          <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700">
-                            今すぐ
-                          </span>
-                        ) : (
-                          <span className="text-xs text-neutral-500">日時指定</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Link href={`/reservations/${r.id}`} className="font-medium text-neutral-900 hover:underline">
-                          {r.contactName}
-                        </Link>
-                        <div className="text-xs text-neutral-400">{r.contactPhone}</div>
-                      </td>
-                      <td className="px-4 py-3">{r.locationName}</td>
-                      <td className="px-4 py-3 whitespace-nowrap">{formatDateTimeJST(r.requestedDatetime)}</td>
-                      <td className="px-4 py-3">
-                        客{r.guestCount}名 / 女の子{r.companionCount}名
-                      </td>
-                      <td className="px-4 py-3">{formatYen(price.totalPrice)}</td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={r.status} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
     </div>
   );
 }
 
-function ReservationCard({ reservation: r }: { reservation: Reservation }) {
-  const price = calculatePrice({
-    companionCount: r.companionCount,
-    durationHours: r.durationHours,
-    travelFee: r.travelFee,
+function ReservationRow({ reservation: r, now }: { reservation: Reservation; now: number }) {
+  return (
+    <li>
+      <Link href={`/reservations/${r.id}`} className="flex items-center gap-3 px-4 py-3 transition hover:bg-canvas active:bg-canvas">
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-2 text-sm font-bold">
+            {describeWhen(r.requestedDatetime, now)}
+            {r.bookingType === "now" && (
+              <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[11px] font-bold text-rose-700">今すぐ</span>
+            )}
+          </p>
+          <p className="truncate text-sm">{r.contactName}</p>
+          <p className="truncate text-xs text-faint">
+            {r.locationName} ・ 女の子{r.companionCount}名 ・ {formatYen(totalYen(r))}
+          </p>
+        </div>
+        <StatusBadge status={r.status} />
+      </Link>
+    </li>
+  );
+}
+
+function SystemStatusCard() {
+  const [state, setState] = useState<{ loaded: boolean; available: boolean; checks: HealthCheck[] }>({
+    loaded: false,
+    available: false,
+    checks: [],
   });
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/system-status")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setState({ loaded: true, available: Boolean(data.available), checks: data.checks ?? [] });
+      })
+      .catch(() => {
+        if (!cancelled) setState({ loaded: true, available: false, checks: [] });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const failing = state.checks.filter((c) => c.status === "fail");
+  const lastChecked = state.checks.map((c) => Date.parse(c.updatedAt)).sort().pop();
+
   return (
-    <Link
-      href={`/reservations/${r.id}`}
-      className="block rounded-lg border border-neutral-200 bg-white p-4 active:bg-neutral-50"
+    <Card
+      title="システムの状態"
+      action={
+        state.available && (
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              failing.length === 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+            }`}
+          >
+            {failing.length === 0 ? "すべて正常" : `${failing.length}件に異常`}
+          </span>
+        )
+      }
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
-        {r.bookingType === "now" ? (
-          <span className="rounded bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700">今すぐ</span>
-        ) : (
-          <span className="text-xs text-neutral-500">日時指定</span>
-        )}
-        <StatusBadge status={r.status} />
-      </div>
-      <p className="font-medium text-neutral-900">{r.contactName}</p>
-      <p className="text-xs text-neutral-400">{r.contactPhone}</p>
-      <div className="mt-2 space-y-0.5 text-sm text-neutral-600">
-        <p>{r.locationName}</p>
-        <p>{formatDateTimeJST(r.requestedDatetime)}</p>
-        <p>
-          客{r.guestCount}名 / 女の子{r.companionCount}名 ・ {formatYen(price.totalPrice)}
-        </p>
-      </div>
-    </Link>
+      {!state.loaded ? (
+        <EmptyState>読み込み中...</EmptyState>
+      ) : !state.available ? (
+        <EmptyState>
+          自動チェックの結果がまだありません。
+          <br />
+          5分おきの自動チェックを設定すると、ここに表示されます。
+        </EmptyState>
+      ) : (
+        <>
+          <ul className="divide-y divide-line">
+            {state.checks.map((c) => (
+              <li key={c.name} className="flex items-start gap-3 px-4 py-3">
+                <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${c.status === "ok" ? "bg-emerald-500" : "bg-rose-500"}`} />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{c.label}</p>
+                  {c.status === "fail" && <p className="break-words text-xs text-rose-600">{c.detail}</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+          {lastChecked && (
+            <p className="border-t border-line px-4 py-2 text-xs text-faint">
+              最終チェック:{" "}
+              {new Date(lastChecked).toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}
+            </p>
+          )}
+        </>
+      )}
+    </Card>
   );
 }

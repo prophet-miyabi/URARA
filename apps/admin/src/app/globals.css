@@ -1,26 +1,30 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* 色の基準。薄いグレーの背景に濃い文字・細い境界線という、落ち着いた業務画面の配色。
+   ブランドの黒と、差し色のシャンパンゴールドだけで構成する。 */
+@theme {
+  --color-canvas: #f7f8fa;
+  --color-ink: #101828;
+  --color-line: #e4e7ec;
+  --color-subtle: #667085;
+  --color-faint: #98a2b3;
+  --color-gold: #b08d3c;
 }
 
+/* Geistは欧文のみ。日本語は各OSの標準ゴシックに任せる（Arialに落ちて崩れるのを防ぐ）。 */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-sans), "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI",
+    "Yu Gothic", "Meiryo", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
 }
