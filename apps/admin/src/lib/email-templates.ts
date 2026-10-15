@@ -1,6 +1,8 @@
 import { escapeHtml } from "./email";
 
-const WEBSITE_URL = "https://urara-app.onrender.com";
+// メール本文のリンク先。公開先のドメインを変えるときは、Renderの環境変数
+// APP_PUBLIC_URL（例: https://urara.tech）を設定するだけで切り替えられる。
+const WEBSITE_URL = (process.env.APP_PUBLIC_URL ?? "https://urara-app.onrender.com").replace(/\/$/, "");
 export const MYPAGE_URL = `${WEBSITE_URL}/account`;
 const SUPPORT_PHONE = "090-5671-0985";
 
