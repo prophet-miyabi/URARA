@@ -14,6 +14,10 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
         <meta name="theme-color" content="#050505" />
+        {/* タブ／ホーム画面用のアイコン。Expo が出す favicon.ico より大きい
+            PNG を併記し、対応ブラウザにはそちらを選ばせる。ファイルは public/ 。 */}
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
       </head>
