@@ -1,14 +1,25 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuthStore } from '@/lib/auth-store';
 import { useRemoteReservations } from '@/lib/use-remote-reservations';
-import { STATUS_LABEL } from '@/lib/types';
-import { formatDateTimeJST } from '@/lib/format';
-import { Badge, Card, PressableCard, SecondaryButton, palette } from '@/components/ui';
-import { GlamourStrip } from '@/components/glamour';
+import { palette } from '@/components/ui';
+import {
+  GlassCard,
+  HeroBand,
+  MenuRow,
+  PromoBanner,
+  ReservationRow,
+  SceneWrapper,
+  SectionLabel,
+  serifJa,
+} from '@/components/scene';
 import { EmailVerificationField } from '@/components/email-verification';
 import { ProfileForm } from '@/components/profile-form';
+
+const HERO_IMAGE = require('../../../assets/scene/hero-account.webp');
+const SUPPORT_PHONE = '090-5671-0985';
 
 export default function AccountScreen() {
   const router = useRouter();
@@ -21,85 +32,157 @@ export default function AccountScreen() {
 
   if (!isLoggedIn) {
     return (
-      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <GlamourStrip title="マイページ" />
-        <Card style={styles.card}>
-          <Text style={styles.rowLabel}>ログイン</Text>
-          <Text style={styles.emailHint}>メールアドレスで認証コードを受け取り、ログインしてください</Text>
-          <EmailVerificationField email={email} onEmailChange={setEmail} />
-        </Card>
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <SceneWrapper>
+          <HeroBand
+            image={HERO_IMAGE}
+            height={300}
+            title={'特別なひとときを、\nもっと華やかに。'}
+            subtitle={'ログインすると、ご予約の状況や\n履歴をご確認いただけます。'}
+          />
+          <View style={styles.body}>
+            <GlassCard style={styles.formCard}>
+              <Text style={styles.formTitle}>ログイン</Text>
+              <Text style={styles.formHint}>メールアドレスで認証コードを受け取り、ログインしてください</Text>
+              <EmailVerificationField email={email} onEmailChange={setEmail} />
+            </GlassCard>
+          </View>
+        </SceneWrapper>
       </ScrollView>
     );
   }
 
   if (needsProfile) {
     return (
-      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <GlamourStrip title="マイページ" />
-        <Card style={styles.card}>
-          <ProfileForm />
-        </Card>
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <SceneWrapper>
+          <HeroBand
+            image={HERO_IMAGE}
+            height={220}
+            title={'はじめまして。'}
+            subtitle={'次回からログインするだけでご予約いただけるよう\n初回のみご登録をお願いします。'}
+          />
+          <View style={styles.body}>
+            <GlassCard style={styles.formCard}>
+              <ProfileForm />
+            </GlassCard>
+          </View>
+        </SceneWrapper>
       </ScrollView>
     );
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <GlamourStrip title="マイページ" />
-
-      {activeReservation && (
-        <PressableCard style={styles.activeCard} onPress={() => router.push(`/reservation/${activeReservation.id}`)}>
-          <View style={styles.activeCardHeader}>
-            <Text style={styles.activeCardTitle}>進行中の予約</Text>
-            <Badge label={STATUS_LABEL[activeReservation.status]} tone="warning" />
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <SceneWrapper>
+        {/* お名前のヘッダー */}
+        <View style={styles.profileHeader}>
+          <View style={styles.avatar}>
+            <Ionicons name="person" size={34} color={palette.silver} />
           </View>
-          <Text style={styles.activeCardBody}>
-            {formatDateTimeJST(activeReservation.requested_datetime)} ・ 女の子{activeReservation.companion_count}名
-          </Text>
-        </PressableCard>
-      )}
-
-      <Card style={styles.card}>
-        <View style={styles.row}>
-          <Text style={styles.rowLabel}>お客様情報</Text>
-          <SecondaryButton label={editing ? '閉じる' : '編集'} onPress={() => setEditing((v) => !v)} />
+          <View style={styles.profileText}>
+            <Text style={styles.profileName}>
+              {profile!.fullName} <Text style={styles.profileHonorific}>様</Text>
+            </Text>
+            <Text style={styles.profileEmail} numberOfLines={1}>
+              {profile!.email}
+            </Text>
+            <Text style={styles.profileThanks}>いつもご利用いただきありがとうございます。</Text>
+          </View>
         </View>
-        {editing ? (
-          <ProfileForm
-            initialValues={{ fullName: profile!.fullName, phoneNumber: profile!.phoneNumber, address: profile!.address }}
-            onSaved={() => setEditing(false)}
+
+        <View style={styles.body}>
+          {activeReservation && (
+            <>
+              <SectionLabel>進行中の予約</SectionLabel>
+              <ReservationRow
+                reservation={activeReservation}
+                onPress={() => router.push(`/reservation/${activeReservation.id}`)}
+              />
+            </>
+          )}
+
+          <GlassCard>
+            <MenuRow
+              icon="person-outline"
+              title="お客様情報"
+              subtitle={editing ? '編集を閉じる' : 'お名前・電話番号・ご住所の確認・変更'}
+              onPress={() => setEditing((v) => !v)}
+            />
+            <MenuRow icon="call-outline" title="お問い合わせ" subtitle={`予約や当日の内容についてのご相談はこちら ・ ${SUPPORT_PHONE}`} last />
+          </GlassCard>
+
+          {editing ? (
+            <GlassCard style={styles.formCard}>
+              <ProfileForm
+                initialValues={{ fullName: profile!.fullName, phoneNumber: profile!.phoneNumber, address: profile!.address }}
+                onSaved={() => setEditing(false)}
+              />
+            </GlassCard>
+          ) : (
+            <GlassCard style={styles.infoCard}>
+              <InfoLine icon="person-outline" value={profile!.fullName} />
+              <InfoLine icon="call-outline" value={profile!.phoneNumber} />
+              <InfoLine icon="location-outline" value={profile!.address} />
+            </GlassCard>
+          )}
+
+          <PromoBanner
+            image={HERO_IMAGE}
+            title={'宴会・パーティーを\nもっと華やかに。'}
+            subtitle="ご希望の日時で、かんたん予約"
+            onPress={() => router.push('/booking')}
           />
-        ) : (
-          <>
-            <Text style={styles.profileValue}>{profile!.fullName}</Text>
-            <Text style={styles.profileValue}>{profile!.phoneNumber}</Text>
-            <Text style={styles.profileValue}>{profile!.address}</Text>
-            <Text style={styles.emailHint}>{profile!.email}</Text>
-          </>
-        )}
-      </Card>
 
-      <Card style={styles.row}>
-        <Text style={styles.rowLabel}>お問い合わせ</Text>
-        <Text style={styles.rowValue}>予約や当日の内容についてのご相談はこちら</Text>
-      </Card>
-
-      <SecondaryButton label="ログアウト" onPress={signOut} />
+          <Pressable onPress={signOut} style={({ pressed }) => [styles.logout, pressed && styles.logoutPressed]}>
+            <Ionicons name="log-out-outline" size={16} color={palette.textMuted} />
+            <Text style={styles.logoutLabel}>ログアウト</Text>
+          </Pressable>
+        </View>
+      </SceneWrapper>
     </ScrollView>
+  );
+}
+
+function InfoLine({ icon, value }: { icon: keyof typeof Ionicons.glyphMap; value: string }) {
+  return (
+    <View style={styles.infoLine}>
+      <Ionicons name={icon} size={14} color={palette.textFaint} />
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: 20, gap: 12 },
-  card: { gap: 8 },
-  activeCard: { gap: 6 },
-  activeCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  activeCardTitle: { fontSize: 14, fontWeight: '700', color: palette.text },
-  activeCardBody: { fontSize: 13, color: palette.textMuted },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
-  rowLabel: { fontSize: 14, fontWeight: '600', color: palette.text },
-  rowValue: { fontSize: 13, color: palette.textMuted, flexShrink: 1, textAlign: 'right' },
-  emailHint: { fontSize: 11, color: palette.textFaint, marginTop: -4 },
-  profileValue: { fontSize: 14, color: palette.text },
+  content: { paddingBottom: 32 },
+  body: { paddingHorizontal: 18, paddingTop: 6, gap: 12 },
+  formCard: { padding: 16, gap: 8 },
+  formTitle: { color: palette.text, fontFamily: serifJa, fontSize: 18, letterSpacing: 1 },
+  formHint: { color: palette.textMuted, fontSize: 12, lineHeight: 18, marginBottom: 4 },
+
+  profileHeader: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 22, paddingTop: 22, paddingBottom: 10 },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileText: { flex: 1, gap: 3 },
+  profileName: { color: palette.silverBright, fontFamily: serifJa, fontSize: 22, letterSpacing: 2 },
+  profileHonorific: { fontSize: 15, letterSpacing: 1 },
+  profileEmail: { color: palette.textMuted, fontSize: 11 },
+  profileThanks: { color: palette.silver, fontSize: 11, marginTop: 2 },
+
+  infoCard: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  infoLine: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  infoValue: { color: palette.text, fontSize: 14, flex: 1 },
+
+  logout: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 14, minHeight: 44 },
+  logoutPressed: { opacity: 0.6 },
+  logoutLabel: { color: palette.textMuted, fontSize: 13, letterSpacing: 0.5 },
 });

@@ -2,18 +2,10 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/lib/auth-store';
 import { useRemoteReservations, type RemoteReservation } from '@/lib/use-remote-reservations';
-import { STATUS_LABEL, type ReservationStatus } from '@/lib/types';
-import { formatDateTimeJST } from '@/lib/format';
-import { Badge, PressableCard, palette } from '@/components/ui';
-import { GlamourStrip } from '@/components/glamour';
+import { palette } from '@/components/ui';
+import { GlassCard, HeroBand, MAX_SCENE_WIDTH, ReservationRow } from '@/components/scene';
 
-const STATUS_TONE: Record<ReservationStatus, 'neutral' | 'success' | 'warning' | 'danger'> = {
-  received: 'neutral',
-  arranging: 'warning',
-  confirmed: 'success',
-  completed: 'neutral',
-  cancelled: 'danger',
-};
+const HERO_IMAGE = require('../../../assets/scene/hero-history.webp');
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -21,16 +13,9 @@ export default function HistoryScreen() {
   const { reservations } = useRemoteReservations();
 
   const renderItem = ({ item }: { item: RemoteReservation }) => (
-    <PressableCard style={styles.item} onPress={() => router.push(`/reservation/${item.id}`)}>
-      <View style={styles.itemHeader}>
-        <Text style={styles.itemVenue}>{item.location_name}</Text>
-        <Badge label={STATUS_LABEL[item.status]} tone={STATUS_TONE[item.status]} />
-      </View>
-      <Text style={styles.itemMeta}>{formatDateTimeJST(item.requested_datetime)}</Text>
-      <Text style={styles.itemMeta}>
-        女の子{item.companion_count}名 ・ {item.duration_hours}時間
-      </Text>
-    </PressableCard>
+    <View style={styles.item}>
+      <ReservationRow reservation={item} onPress={() => router.push(`/reservation/${item.id}`)} />
+    </View>
   );
 
   return (
@@ -40,11 +25,23 @@ export default function HistoryScreen() {
       data={reservations}
       keyExtractor={(r) => r.id}
       renderItem={renderItem}
-      ListHeaderComponent={<GlamourStrip title="予約履歴" />}
+      ListHeaderComponent={
+        <HeroBand
+          image={HERO_IMAGE}
+          title={'これまでの\n特別な時間を\n振り返って。'}
+          subtitle={'ご利用いただいた予約の履歴を\nご確認いただけます。'}
+          height={250}
+        />
+      }
+      ListHeaderComponentStyle={styles.header}
       ListEmptyComponent={
-        <Text style={styles.empty}>
-          {isLoggedIn ? '予約履歴はありません' : 'ログインすると予約履歴が確認できます（マイページからログイン）'}
-        </Text>
+        <View style={styles.item}>
+          <GlassCard style={styles.emptyCard}>
+            <Text style={styles.empty}>
+              {isLoggedIn ? '予約履歴はありません' : 'ログインすると予約履歴が確認できます（マイページからログイン）'}
+            </Text>
+          </GlassCard>
+        </View>
       }
     />
   );
@@ -52,10 +49,9 @@ export default function HistoryScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: 20, gap: 12 },
-  item: { gap: 6 },
-  itemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  itemVenue: { fontSize: 15, fontWeight: '700', color: palette.text },
-  itemMeta: { fontSize: 13, color: palette.textMuted },
-  empty: { textAlign: 'center', color: palette.textMuted, marginTop: 40 },
+  content: { paddingBottom: 32, width: '100%', maxWidth: MAX_SCENE_WIDTH, alignSelf: 'center' },
+  header: { marginBottom: 6 },
+  item: { paddingHorizontal: 18, paddingBottom: 12 },
+  emptyCard: { paddingVertical: 28, paddingHorizontal: 16 },
+  empty: { textAlign: 'center', color: palette.textMuted, fontSize: 13, lineHeight: 20 },
 });

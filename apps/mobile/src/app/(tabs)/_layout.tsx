@@ -1,7 +1,14 @@
 import { Tabs } from 'expo-router';
+import { StyleSheet, Text } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { palette } from '@/components/ui';
+import { serifJa } from '@/components/scene';
+
+// 各タブの右上に置くブランド表記。
+function HeaderWordmark() {
+  return <Text style={styles.wordmark}>URARA</Text>;
+}
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -15,8 +22,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerStyle: { backgroundColor: palette.bg },
+        headerShadowVisible: false,
         headerTintColor: palette.silver,
-        headerTitleStyle: { color: palette.text },
+        headerTitleAlign: 'center',
+        headerTitleStyle: { color: palette.text, fontFamily: serifJa, fontSize: 17, letterSpacing: 2 },
+        headerRight: () => <HeaderWordmark />,
         tabBarStyle: {
           backgroundColor: palette.bg,
           borderTopColor: palette.hairline,
@@ -48,3 +58,13 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  wordmark: {
+    color: palette.silver,
+    fontFamily: 'PlayfairDisplay_600SemiBold',
+    fontSize: 15,
+    letterSpacing: 3,
+    marginRight: 18,
+  },
+});

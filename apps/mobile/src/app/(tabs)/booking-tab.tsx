@@ -2,10 +2,10 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRemoteReservations } from '@/lib/use-remote-reservations';
-import { STATUS_LABEL, STATUS_STEPS, type ReservationStatus } from '@/lib/types';
-import { formatDateTimeJST } from '@/lib/format';
-import { Badge, PlatinumButton, PressableCard, palette } from '@/components/ui';
-import { GlamourStrip } from '@/components/glamour';
+import { PlatinumButton, palette } from '@/components/ui';
+import { GlassCard, HeroBand, ReservationRow, SceneWrapper, SectionLabel } from '@/components/scene';
+
+const HERO_IMAGE = require('../../../assets/scene/hero-booking.webp');
 
 export default function BookingTabScreen() {
   const router = useRouter();
@@ -17,53 +17,41 @@ export default function BookingTabScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <GlamourStrip title="ご予約" />
+      <SceneWrapper>
+        <HeroBand
+          image={HERO_IMAGE}
+          imageAlign="cover"
+          title={'ご希望の日時で\n特別なひとときを。'}
+          subtitle={'人気のキャストから\nご希望の時間でご予約いただけます。'}
+        />
 
-      <PlatinumButton
-        label="新しく予約する"
-        icon={<Ionicons name="add-circle" size={18} color={palette.onSilver} />}
-        onPress={() => router.push('/booking')}
-      />
+        <View style={styles.body}>
+          <PlatinumButton
+            label="今すぐ予約する"
+            icon={<Ionicons name="calendar-outline" size={18} color={palette.onSilver} />}
+            onPress={() => router.push('/booking')}
+          />
 
-      {activeReservations.length === 0 ? (
-        <Text style={styles.empty}>進行中の予約はありません</Text>
-      ) : (
-        <View style={styles.list}>
-          <Text style={styles.sectionLabel}>進行中の予約</Text>
-          {activeReservations.map((r) => {
-            const currentIndex = STATUS_STEPS.indexOf(r.status as ReservationStatus);
-            return (
-              <PressableCard key={r.id} style={styles.card} onPress={() => router.push(`/reservation/${r.id}`)}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardVenue}>{r.location_name}</Text>
-                  <Badge label={STATUS_LABEL[r.status]} tone="warning" />
-                </View>
-                <Text style={styles.cardMeta}>{formatDateTimeJST(r.requested_datetime)}</Text>
-                <View style={styles.stepDots}>
-                  {STATUS_STEPS.map((s, i) => (
-                    <View key={s} style={[styles.dot, i <= currentIndex && styles.dotActive]} />
-                  ))}
-                </View>
-              </PressableCard>
-            );
-          })}
+          <SectionLabel>進行中の予約</SectionLabel>
+          {activeReservations.length === 0 ? (
+            <GlassCard style={styles.emptyCard}>
+              <Text style={styles.empty}>進行中の予約はありません</Text>
+            </GlassCard>
+          ) : (
+            activeReservations.map((r) => (
+              <ReservationRow key={r.id} reservation={r} onPress={() => router.push(`/reservation/${r.id}`)} />
+            ))
+          )}
         </View>
-      )}
+      </SceneWrapper>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: 20, gap: 18 },
-  empty: { color: palette.textMuted, textAlign: 'center', marginTop: 30, fontSize: 13 },
-  list: { gap: 10 },
-  sectionLabel: { color: palette.textMuted, fontSize: 12, fontWeight: '700' },
-  card: { gap: 8 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardVenue: { color: palette.text, fontSize: 15, fontWeight: '700' },
-  cardMeta: { color: palette.textMuted, fontSize: 12 },
-  stepDots: { flexDirection: 'row', gap: 6, marginTop: 2 },
-  dot: { flex: 1, height: 3, borderRadius: 2, backgroundColor: palette.hairline },
-  dotActive: { backgroundColor: palette.silver },
+  content: { paddingBottom: 32 },
+  body: { paddingHorizontal: 18, paddingTop: 6, gap: 12 },
+  emptyCard: { paddingVertical: 28, paddingHorizontal: 16 },
+  empty: { color: palette.textMuted, textAlign: 'center', fontSize: 13 },
 });
