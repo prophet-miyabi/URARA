@@ -19,6 +19,9 @@ import { EmailVerificationField } from '@/components/email-verification';
 import { ProfileForm } from '@/components/profile-form';
 
 const HERO_IMAGE = require('../../../assets/scene/hero-account.webp');
+// 下部のバナーは横長なので、縦長のヒーロー画像とは別に、顔から肩までが
+// 収まる切り出しを使う（同じ画像を流用すると頭だけが見えてしまう）。
+const BANNER_IMAGE = require('../../../assets/scene/banner-account.webp');
 const SUPPORT_PHONE = '090-5671-0985';
 
 export default function AccountScreen() {
@@ -128,7 +131,7 @@ export default function AccountScreen() {
           )}
 
           <PromoBanner
-            image={HERO_IMAGE}
+            image={BANNER_IMAGE}
             title={'宴会・パーティーを\nもっと華やかに。'}
             subtitle="ご希望の日時で、かんたん予約"
             onPress={() => router.push('/booking')}

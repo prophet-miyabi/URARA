@@ -178,10 +178,11 @@ export function PromoBanner({
     <Pressable onPress={onPress}>
       {({ pressed }) => (
         <View style={[styles.glass, styles.banner, pressed && styles.pressed]}>
-          <Image source={image} style={styles.bannerImage} contentFit="cover" contentPosition="top center" />
+          <Image source={image} style={styles.bannerImage} contentFit="cover" contentPosition="center" />
+          {/* 写真の右端（約45%）から先を黒に溶かし、顔の部分には暗幕をかけない */}
           <LinearGradient
-            colors={['rgba(18,18,20,0.2)', 'rgba(18,18,20,0.92)', 'rgba(18,18,20,0.98)']}
-            locations={[0, 0.45, 1]}
+            colors={['rgba(18,18,20,0)', 'rgba(18,18,20,0)', 'rgba(18,18,20,0.9)', 'rgba(18,18,20,0.98)']}
+            locations={[0, 0.3, 0.5, 1]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             style={StyleSheet.absoluteFill}
@@ -248,8 +249,8 @@ const styles = StyleSheet.create({
   menuTitle: { color: palette.text, fontSize: 15, letterSpacing: 0.3 },
   menuSubtitle: { color: palette.textMuted, fontSize: 11 },
 
-  banner: { flexDirection: 'row', alignItems: 'center', height: 104, paddingLeft: 118, paddingRight: 12 },
-  bannerImage: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 150 },
+  banner: { flexDirection: 'row', alignItems: 'center', height: 112, paddingLeft: 150, paddingRight: 12 },
+  bannerImage: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 190 },
   bannerText: { flex: 1, gap: 6 },
   bannerTitle: { color: palette.silverBright, fontFamily: serifJa, fontSize: 16, letterSpacing: 1 },
   bannerSubtitle: { color: palette.silver, fontSize: 11 },
