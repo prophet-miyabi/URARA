@@ -1,4 +1,6 @@
-import { escapeHtml } from "./email";
+// 拡張子つきなのは、node --test（型を剥がして直接実行）でもこのファイルを
+// 読み込めるようにするため。
+import { escapeHtml } from "./email.ts";
 
 // メール本文のリンク先。公開先のドメインを変えるときは、Renderの環境変数
 // APP_PUBLIC_URL（例: https://urara.tech）を設定するだけで切り替えられる。
@@ -223,6 +225,52 @@ export function renderReservationConfirmedEmail(params: {
       ${CANCELLATION_POLICY_HTML}
       ${linkButton("マイページで予約詳細を確認", `${WEBSITE_URL}/reservation/${params.reservationId}`)}
       ${p("お客様にとって、思い出に残る素晴らしいひとときとなりますよう、心よりお祈り申し上げます。")}
+    `,
+    deskLabel: "コンシェルジュデスク",
+  });
+}
+
+// ------------------------------------------------------------------
+// 5. お断り・キャンセルのメール（管理画面で「お断り・キャンセル」にしたとき）
+// ------------------------------------------------------------------
+// 確定前（受付・手配中）はこちらの都合で「お受けできなかった」案内、確定後は
+// 「確定済みの予約を取り消した」案内になるよう、文面を分ける。
+export function renderReservationCancelledEmail(params: {
+  fullName: string;
+  reservationId: string;
+  locationName: string;
+  requestedDatetimeLabel: string;
+  guestCount: number;
+  companionCount: number;
+  wasConfirmed: boolean;
+  message?: string;
+}): string {
+  const heading = params.wasConfirmed ? "ご予約キャンセルのご案内" : "ご予約をお受けできませんでした";
+  const lead = params.wasConfirmed
+    ? "誠に恐れ入りますが、確定しておりました下記のご予約は<strong style=\"color:#F5F5F7;\">キャンセル</strong>となりました。ご迷惑をおかけし、心よりお詫び申し上げます。"
+    : "この度はURARA COMPANIONにご予約リクエストをいただき、誠にありがとうございます。誠に恐れ入りますが、キャストの手配がつかず、下記のご予約を<strong style=\"color:#F5F5F7;\">お受けすることができませんでした</strong>。ご期待に沿えず、心よりお詫び申し上げます。";
+  const message = params.message?.trim();
+  return renderLayout({
+    heading,
+    bodyHtml: `
+      ${p(`${escapeHtml(params.fullName)} 様`)}
+      ${p(lead)}
+      ${detailTable([
+        ["予約番号", escapeHtml(params.reservationId)],
+        ["ご希望日時", escapeHtml(params.requestedDatetimeLabel)],
+        ["ご利用場所", escapeHtml(params.locationName)],
+        ["ご利用人数", `お客様${params.guestCount}名 / キャスト${params.companionCount}名`],
+      ])}
+      ${
+        message
+          ? `<p style="font-size:12px;color:#6C6C70;margin:16px 0 4px;">URARAからのメッセージ</p>
+             <p style="font-size:13px;color:#F5F5F7;white-space:pre-wrap;margin:0 0 12px;">${escapeHtml(message)}</p>`
+          : ""
+      }
+      ${p("このキャンセルに伴うお客様へのご請求はございません。")}
+      ${p("別の日時でのご利用をご希望の場合は、下記より改めてご予約いただけます。ご不明な点は、このメールへの返信またはお電話にてお気軽にお問い合わせください。")}
+      ${linkButton("別の日時で予約する", `${WEBSITE_URL}/booking`)}
+      ${p("またのご利用を、スタッフ一同心よりお待ち申し上げております。")}
     `,
     deskLabel: "コンシェルジュデスク",
   });

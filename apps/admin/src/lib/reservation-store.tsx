@@ -15,7 +15,8 @@ interface ReservationStore {
   lastUpdated: number | null;
   refresh: () => Promise<void>;
   getReservation: (id: string) => Reservation | undefined;
-  setStatus: (id: string, status: ReservationStatus) => Promise<void>;
+  /** `message` はお断り・キャンセル時にお客様へのメールに添える任意のひとこと */
+  setStatus: (id: string, status: ReservationStatus, options?: { message?: string }) => Promise<void>;
   updateTravelFee: (id: string, travelFee: number) => Promise<void>;
   updateDuration: (id: string, durationHours: number) => Promise<void>;
 }
@@ -89,7 +90,11 @@ export function ReservationProvider({ children }: { children: React.ReactNode })
     setReservations((prev) => prev.map((r) => (r.id === id ? data.reservation : r)));
   }, []);
 
-  const setStatus = useCallback((id: string, status: ReservationStatus) => patch(id, { status }), [patch]);
+  const setStatus = useCallback(
+    (id: string, status: ReservationStatus, options?: { message?: string }) =>
+      patch(id, { status, ...(options?.message ? { message: options.message } : {}) }),
+    [patch]
+  );
   const updateTravelFee = useCallback((id: string, travelFee: number) => patch(id, { travelFee }), [patch]);
   const updateDuration = useCallback(
     (id: string, durationHours: number) => patch(id, { durationHours }),

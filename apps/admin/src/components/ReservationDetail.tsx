@@ -10,8 +10,13 @@ import { formatDateTimeJST, formatYen } from "@/lib/format";
 
 const CONFIRM_MESSAGE: Partial<Record<ReservationStatus, string>> = {
   confirmed: "お客様に「予約確定」のメールを送信します。よろしいですか？",
-  cancelled: "この予約をキャンセル（お断り）にします。よろしいですか？",
 };
+
+// お断り・キャンセルは、お客様へ自動でメールが届く。運営からのひとことを
+// 任意で添えられるよう、確認ダイアログを入力欄つきにしている。
+const CANCEL_PROMPT =
+  "この予約をお断り・キャンセルにし、お客様へその旨のメールを送信します。\n" +
+  "お客様へのメッセージがあれば入力してください（空欄のままでも送信されます）。";
 
 const BOOKING_TYPE_LABEL = { now: "今すぐ予約", scheduled: "日時指定予約" } as const;
 const PAYMENT_LABEL = { cash: "現金", card: "カード" } as const;
@@ -68,6 +73,13 @@ export function ReservationDetail({ id }: { id: string }) {
   // お客様へのメール送信や取り消しは、スマホでの誤タップが取り返しのつかない
   // 結果になるため、実行前に確認を挟む。
   const setStatus = (status: ReservationStatus) => {
+    if (status === "cancelled") {
+      // 「キャンセル」ボタンで閉じたときは null が返るので、何もしない。
+      const message = window.prompt(CANCEL_PROMPT, "");
+      if (message === null) return;
+      store.setStatus(reservation.id, status, { message: message.trim() });
+      return;
+    }
     const message = CONFIRM_MESSAGE[status];
     if (message && !window.confirm(message)) return;
     store.setStatus(reservation.id, status);
@@ -255,6 +267,11 @@ export function ReservationDetail({ id }: { id: string }) {
             {reservation.status === "arranging" && (
               <p className="mt-2 text-xs text-neutral-400">
                 手配が整ったら「確定して通知送信」を押すと、お客様に確定メールが送信されます。
+              </p>
+            )}
+            {canCancel && (
+              <p className="mt-2 text-xs text-neutral-400">
+                「お断り・キャンセル」を押すと、お客様にその旨のメールが自動で送信されます。メッセージを添えることもできます。
               </p>
             )}
           </section>

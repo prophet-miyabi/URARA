@@ -1,19 +1,24 @@
 import { calculatePrice } from '@companion-dispatch/pricing';
 import { NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email';
-import { renderReservationConfirmedEmail } from '@/lib/email-templates';
+import { renderReservationCancelledEmail, renderReservationConfirmedEmail } from '@/lib/email-templates';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
 import { mapReservationRow, type ReservationRow } from '@/lib/map-reservation';
+import { getOperatorEmails } from '@/lib/notification-settings';
 import { isSupabaseConfigured, supabaseAdmin } from '@/lib/supabase-admin';
 import type { ReservationStatus } from '@/lib/types';
 
 const PAYMENT_METHOD_LABEL: Record<string, string> = { cash: '現金', card: 'カード' };
 const VALID_STATUSES: ReservationStatus[] = ['received', 'arranging', 'confirmed', 'completed', 'cancelled'];
+// お断りメールに添える運営からのひとこと。長文を貼られてもメールが崩れないよう上限を設ける。
+const MAX_MESSAGE_LENGTH = 500;
 
 interface PatchBody {
   status?: string;
   travelFee?: number;
   durationHours?: number;
+  /** お断り・キャンセル時に、お客様へのメールに添えるメッセージ（任意） */
+  message?: string;
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -41,6 +46,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'no valid fields to update' }, { status: 400 });
+  }
+
+  // お断りメールは「すでにキャンセル済みの予約をもう一度キャンセルにした」
+  // ときに二重送信しないよう、更新前のステータスを控えておく。確定後の
+  // 取り消しかどうかで文面も変わる。
+  let previousStatus: ReservationStatus | null = null;
+  if (body.status === 'cancelled') {
+    const { data: before } = await supabaseAdmin.from('reservations').select('status').eq('id', id).maybeSingle();
+    previousStatus = (before?.status as ReservationStatus | undefined) ?? null;
   }
 
   const { data, error } = await supabaseAdmin
@@ -80,6 +94,32 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         paymentMethodLabel: PAYMENT_METHOD_LABEL[reservation.paymentMethod] ?? reservation.paymentMethod,
       })
     ).catch((err) => console.error('reservation confirmed email errored', err));
+  }
+
+  // お断り・キャンセルも同様にベストエフォートで通知する。お客様が返信で
+  // 問い合わせできるよう、返信先は運営の通知先に向ける。
+  if (body.status === 'cancelled' && previousStatus !== 'cancelled' && reservation.contactEmail) {
+    const message = typeof body.message === 'string' ? body.message.trim().slice(0, MAX_MESSAGE_LENGTH) : undefined;
+    const wasConfirmed = previousStatus === 'confirmed';
+    getOperatorEmails()
+      .then((operatorEmails) =>
+        sendEmail(
+          reservation.contactEmail,
+          wasConfirmed ? '【URARA】ご予約キャンセルのご案内' : '【URARA】ご予約をお受けできませんでした',
+          renderReservationCancelledEmail({
+            fullName: reservation.contactName,
+            reservationId: reservation.id,
+            locationName: reservation.locationName,
+            requestedDatetimeLabel: formatDateTimeJST(reservation.requestedDatetime),
+            guestCount: reservation.guestCount,
+            companionCount: reservation.companionCount,
+            wasConfirmed,
+            message: message || undefined,
+          }),
+          operatorEmails.length > 0 ? operatorEmails : undefined
+        )
+      )
+      .catch((err) => console.error('reservation cancelled email errored', err));
   }
 
   return NextResponse.json({ reservation });
