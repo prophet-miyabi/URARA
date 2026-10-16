@@ -1,11 +1,13 @@
-import { Pressable, StyleSheet, Text, View, type ViewProps } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View, type ViewProps } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export const palette = {
   bg: '#050505',
-  bgElevated: '#121212',
-  card: '#121212',
-  cardBorder: '#2A2A2A',
-  hairline: '#232323',
+  bgElevated: '#151517',
+  card: '#151517',
+  // 黒ガラスの縁。暗い背景の上で、うっすら光る線に見える。
+  cardBorder: 'rgba(255, 255, 255, 0.12)',
+  hairline: 'rgba(255, 255, 255, 0.08)',
   text: '#F5F5F7',
   textMuted: '#8E8E93',
   textFaint: '#6C6C70',
@@ -19,8 +21,15 @@ export const palette = {
   warningBg: '#242424',
   danger: '#D97F72',
   dangerBg: '#2A1815',
-  neutralBg: '#1C1C1E',
+  neutralBg: '#1E1E21',
 };
+
+// 日本語の見出しは明朝体で。Web版のみ配信のため、明朝が無い端末では
+// ブラウザ既定のセリフ体に落ちる（ネイティブは既定フォントのまま）。
+export const serifJa = Platform.select({
+  web: "'Hiragino Mincho ProN', 'Yu Mincho', YuMincho, 'Noto Serif JP', 'Noto Serif CJK JP', serif",
+  default: undefined,
+});
 
 export function Card({ style, ...rest }: ViewProps) {
   return <View style={[styles.card, style]} {...rest} />;
@@ -44,6 +53,7 @@ export function PressableCard({
   );
 }
 
+// ホーム画面の主ボタンと同じ、銀の箔押し風のグラデーションを持つ主ボタン。
 export function PlatinumButton({
   label,
   onPress,
@@ -61,6 +71,13 @@ export function PlatinumButton({
       disabled={disabled}
       style={({ pressed }) => [styles.platinumButton, { opacity: disabled ? 0.35 : pressed ? 0.85 : 1 }]}
     >
+      <LinearGradient
+        colors={[palette.silverBright, palette.silver, palette.silverDeep]}
+        locations={[0, 0.5, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       {icon}
       <Text style={styles.platinumButtonLabel}>{label}</Text>
       <Text style={styles.chevron}>›</Text>
@@ -110,8 +127,8 @@ export function PlatinumDivider() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: palette.card,
-    borderRadius: 14,
+    backgroundColor: 'rgba(22, 22, 24, 0.78)',
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: palette.cardBorder,
     padding: 16,
@@ -125,7 +142,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     borderRadius: 999,
-    paddingVertical: 16,
+    minHeight: 54,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    overflow: 'hidden',
     backgroundColor: palette.silver,
   },
   platinumButtonLabel: {
@@ -141,20 +161,20 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   outlineButton: {
-    borderRadius: 10,
+    borderRadius: 999,
     paddingVertical: 12,
     // 指で押しやすい最小サイズ（44pt）を確保する。
     minHeight: 44,
     minWidth: 44,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: palette.cardBorder,
-    backgroundColor: palette.bgElevated,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
   outlineButtonLabel: {
-    color: palette.text,
+    color: palette.silver,
     fontSize: 15,
     fontWeight: '600',
   },

@@ -1,21 +1,16 @@
-import { Platform, Pressable, StyleSheet, Text, View, type ImageSourcePropType, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type ImageSourcePropType, type ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { RemoteReservation } from '@/lib/use-remote-reservations';
 import { STATUS_LABEL, type ReservationStatus } from '@/lib/types';
 import { formatDateJST, formatTimeRangeJST } from '@/lib/format';
-import { Badge, palette } from './ui';
+import { Badge, palette, serifJa } from './ui';
 
 // 予約・履歴・マイページ共通の「黒ガラス」調の部品。写真の上に短いコピーを置く
 // ヒーロー帯、半透明のカード、サムネイル付きの予約行、メニュー行をまとめている。
 
-// 日本語の見出しは明朝体で。Web版のみ配信のため、明朝が無い端末では
-// ブラウザ既定のセリフ体に落ちる（ネイティブは既定フォントのまま）。
-export const serifJa = Platform.select({
-  web: "'Hiragino Mincho ProN', 'Yu Mincho', YuMincho, 'Noto Serif JP', 'Noto Serif CJK JP', serif",
-  default: undefined,
-});
+export { serifJa };
 
 // 一覧カードのサムネイル。予約ごとの写真は無いので、雰囲気写真を予約IDから
 // 決まる順番で割り当てる（同じ予約はいつ見ても同じ写真になる）。

@@ -9,7 +9,7 @@ import { isValidEmail } from '@/lib/profile';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import type { BookingType, Location } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
-import { Card, PlatinumButton, SecondaryButton, palette } from '@/components/ui';
+import { Card, PlatinumButton, SecondaryButton, palette, serifJa } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
 import { CalendarPicker, TimeWheelPicker, firstAvailableHour, isSameDay } from '@/components/calendar';
 import { LocationPicker } from '@/components/location-picker';
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   progressDotTextActive: { color: palette.onSilver },
   progressLabel: { fontSize: 10, color: palette.textMuted, textAlign: 'center' },
   stepBody: { gap: 14 },
-  stepTitle: { fontSize: 18, fontWeight: '800', color: palette.text },
+  stepTitle: { fontSize: 20, fontFamily: serifJa, letterSpacing: 1, color: palette.silverBright },
   stepHint: { fontSize: 12, color: palette.textMuted, marginTop: -8 },
   fieldLabel: { fontSize: 13, fontWeight: '700', color: palette.text, marginTop: 4 },
   toggleRow: { flexDirection: 'row', gap: 10 },
@@ -405,19 +405,19 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     borderWidth: 1,
-    borderColor: palette.cardBorder,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 999,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    backgroundColor: palette.card,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
   chipSelected: { borderColor: palette.silver, backgroundColor: palette.silver },
-  chipText: { color: palette.text, fontSize: 13, fontWeight: '600' },
+  chipText: { color: palette.silver, fontSize: 13, fontWeight: '600' },
   chipTextSelected: { color: palette.onSilver, fontWeight: '800' },
   formNote: { fontSize: 11, color: palette.textFaint, lineHeight: 16 },
-  priceCard: { gap: 4, backgroundColor: palette.neutralBg },
-  priceLabel: { fontSize: 12, color: palette.textMuted },
-  priceValue: { fontSize: 24, fontWeight: '800', color: palette.silverBright },
+  priceCard: { gap: 4 },
+  priceLabel: { fontSize: 12, color: palette.textMuted, letterSpacing: 0.5 },
+  priceValue: { fontSize: 26, fontFamily: serifJa, letterSpacing: 1, color: palette.silverBright },
   priceNote: { fontSize: 11, color: palette.textMuted },
   textArea: {
     borderWidth: 1,
@@ -435,9 +435,9 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 1,
     borderColor: palette.cardBorder,
-    borderRadius: 10,
-    padding: 12,
-    backgroundColor: palette.card,
+    borderRadius: 18,
+    padding: 14,
+    backgroundColor: 'rgba(22, 22, 24, 0.78)',
   },
   policyText: { fontSize: 12, color: palette.textMuted, lineHeight: 18 },
   agreeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },

@@ -102,13 +102,10 @@ export default function HomeScreen() {
         <View style={styles.contentWrapper}>
           {/* --- Hero Image & Seamless Scrim --- */}
           <View style={styles.heroSection}>
-            <Image
-              source={HERO_IMAGE}
-              style={StyleSheet.absoluteFill}
-              contentFit="cover"
-              transition={800}
-              placeholder={{ blurhash: 'L0095f~q~q^k^k^k^k^k^k^k^k^k' }}
-            />
+            {/* フェードイン（transition）とぼかしの下地（placeholder）は付けない。
+                Web版で不透明度が途中のまま止まり、青緑のぼかしが透けて見えたままに
+                なることがあったため。 */}
+            <Image source={HERO_IMAGE} style={StyleSheet.absoluteFill} contentFit="cover" />
 
             {/* 上部（ロゴ周り）と下部（コンテンツへのトランジション）のグラデーション暗幕 */}
             <LinearGradient
@@ -119,7 +116,7 @@ export default function HomeScreen() {
 
             {/* --- ブランドロゴ --- */}
             <View style={styles.logoContainer}>
-              <Image source={LOGO_IMAGE} style={styles.brandLogo} contentFit="contain" transition={500} />
+              <Image source={LOGO_IMAGE} style={styles.brandLogo} contentFit="contain" />
             </View>
 
             {/* --- タイトル & キャッチコピー --- */}

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { calculatePrice, DEFAULT_PRICING_RULES } from '@companion-dispatch/pricing';
 import { formatYen } from '@/lib/format';
-import { Card, PlatinumButton, SecondaryButton, PlatinumDivider, palette } from '@/components/ui';
+import { Card, PlatinumButton, SecondaryButton, PlatinumDivider, palette, serifJa } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
 
 const COVERAGE_AREAS = ['甲府市', '笛吹市（石和温泉エリア）', '中巨摩郡昭和町'];
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bg },
   content: { padding: 20, gap: 16, paddingBottom: 48 },
   card: { gap: 10 },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: palette.text },
+  sectionTitle: { fontSize: 18, fontFamily: serifJa, letterSpacing: 1, color: palette.silverBright },
   sectionHint: { fontSize: 12, color: palette.textMuted, marginTop: -4 },
   sectionNote: { fontSize: 11, color: palette.textFaint, lineHeight: 16, marginTop: 4 },
   areaList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -137,6 +137,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   rowLabel: { fontSize: 13, color: palette.textMuted, flexShrink: 1 },
   rowValue: { fontSize: 13, fontWeight: '600', color: palette.text },
-  rowValueBold: { fontSize: 18, fontWeight: '800', color: palette.silverBright },
+  rowValueBold: { fontSize: 22, fontFamily: serifJa, letterSpacing: 1, color: palette.silverBright },
   divider: { height: 1, backgroundColor: palette.cardBorder, marginVertical: 2 },
 });

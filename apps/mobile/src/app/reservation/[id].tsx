@@ -7,7 +7,7 @@ import { useAuthStore } from '@/lib/auth-store';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { STATUS_LABEL, STATUS_STEPS, type Reservation } from '@/lib/types';
 import { formatDateTimeJST, formatYen } from '@/lib/format';
-import { Badge, Card, palette } from '@/components/ui';
+import { Badge, Card, palette, serifJa } from '@/components/ui';
 import { GlamourStrip } from '@/components/glamour';
 
 const STAGE_MESSAGE: Record<string, string> = {
@@ -158,11 +158,11 @@ const styles = StyleSheet.create({
   stepLabelActive: { color: palette.text, fontWeight: '700' },
   stageMessage: { color: palette.textMuted, fontSize: 12, textAlign: 'center', marginTop: 12, lineHeight: 18 },
   section: { gap: 8 },
-  sectionTitle: { fontSize: 14, fontWeight: '800', color: palette.text, marginBottom: 2 },
+  sectionTitle: { fontSize: 16, fontFamily: serifJa, letterSpacing: 1, color: palette.silverBright, marginBottom: 2 },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   rowLabel: { fontSize: 13, color: palette.textMuted },
   rowValue: { fontSize: 13, fontWeight: '600', color: palette.text },
-  rowValueBold: { fontSize: 16, fontWeight: '800', color: palette.silverBright },
+  rowValueBold: { fontSize: 18, fontFamily: serifJa, letterSpacing: 0.5, color: palette.silverBright },
   divider: { height: 1, backgroundColor: palette.cardBorder, marginVertical: 2 },
   cancelNote: { fontSize: 12, color: palette.textMuted, lineHeight: 18 },
 });

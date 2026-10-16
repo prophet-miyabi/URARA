@@ -1,0 +1,47 @@
+[
+  {
+    "out": "assets/scene-gen/hero-booking.jpg",
+    "aspect": "16:9",
+    "prompt": "Luxurious Japanese banquet venue at night, crystal chandelier glowing warmly above, champagne flutes and small candles on a polished black table in the foreground, deep black and silver tones with soft golden bokeh, cinematic photograph, shallow depth of field, elegant and quiet atmosphere, no people, no text, no logos"
+  },
+  {
+    "out": "assets/scene-gen/hero-history.jpg",
+    "aspect": "16:9",
+    "prompt": "Two champagne flutes filled with sparkling champagne on a dark marble counter, dramatic black background with silver and gold bokeh lights, candlelight reflections on glass, high-end editorial photograph, shallow depth of field, moody and elegant, no people, no text, no logos"
+  },
+  {
+    "out": "assets/scene-gen/hero-account.jpg",
+    "aspect": "3:4",
+    "prompt": "Elegant Japanese woman in a black evening dress seen from behind in profile, hair in a soft updo, long sparkling earrings, holding a champagne glass, dark luxurious lounge with chandelier bokeh behind her, cinematic black and silver tones, soft rim light, editorial fashion photograph, no text, no logos"
+  },
+  {
+    "out": "assets/scene-gen/thumb-1.jpg",
+    "aspect": "1:1",
+    "prompt": "Elegant private dining room in a high-end Japanese restaurant at night, low warm candlelight, black lacquer table with sake cups and glasses, dark moody editorial photograph, no people, no text"
+  },
+  {
+    "out": "assets/scene-gen/thumb-2.jpg",
+    "aspect": "1:1",
+    "prompt": "Hotel banquet hall with crystal chandeliers and round tables set with white flowers and wine glasses, dark elegant atmosphere with golden bokeh, editorial photograph, no people, no text"
+  },
+  {
+    "out": "assets/scene-gen/thumb-3.jpg",
+    "aspect": "1:1",
+    "prompt": "Close-up of champagne being poured into crystal flutes at a celebration, dark background with silver sparkle bokeh, luxurious mood, editorial photograph, no faces, no text"
+  },
+  {
+    "out": "assets/scene-gen/thumb-4.jpg",
+    "aspect": "1:1",
+    "prompt": "Woman in a black cocktail dress seen from behind at a glamorous night party, chandelier bokeh, silver and black tones, cinematic photograph, no text"
+  },
+  {
+    "out": "assets/scene-gen/thumb-5.jpg",
+    "aspect": "1:1",
+    "prompt": "Night cityscape of Japan seen through a lounge window with two wine glasses on the sill, dark elegant interior, bokeh city lights, editorial photograph, no people, no text"
+  },
+  {
+    "out": "assets/scene-gen/thumb-6.jpg",
+    "aspect": "1:1",
+    "prompt": "Bouquet of white roses and a silver tray with champagne glasses on a dark table, candlelight, luxurious black and gold mood, editorial photograph, no people, no text"
+  }
+]
