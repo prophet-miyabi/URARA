@@ -10,13 +10,9 @@ RewriteEngine On
 RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
 RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
 
-# httpsに統一する（ConoHa WINGの独自SSLを有効にしてあることが前提）
-RewriteCond %{HTTPS} off
-RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
 # 予約詳細は /reservation/<予約ID> という動的なURL。IDによらず同じ画面を返す。
 # （実体は [id].html だが、角括弧のままだと扱いにくいため detail.html に複製してある）
-RewriteRule ^reservation/[^/]+/?$ /reservation/detail.html [L]
+RewriteRule ^reservation/(?!detail.html$)[^/]+/?$ /reservation/detail.html [L]
 
 # /account のような拡張子なしのURLは、対応する .html を返す
 RewriteCond %{REQUEST_FILENAME} !-f
